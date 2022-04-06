@@ -361,7 +361,7 @@ if len(sys.argv) > 8:
         print('Adding variants...')
         addvariants()
     if tabch != "var":
-        print('Transforming codes codes...')
+        print('Transforming codes...')
         sgmulchar = sys.argv[5] == 'single'
         transforme()
     if sys.argv[5] == "multi":
