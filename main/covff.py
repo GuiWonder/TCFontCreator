@@ -12,9 +12,9 @@ def addunicodest(tcunic, scunic):
         return
     if amb.findEncodingSlot(tcunic) == amb.findEncodingSlot(scunic):
         return
-    glytc = amb[amb[amb.findEncodingSlot(tcunic)].unicode]
+    glytc = amb[amb.findEncodingSlot(tcunic)]
     if scunic in amb or scunic in alladdcds:
-        glysc = amb[amb[amb.findEncodingSlot(scunic)].unicode]
+        glysc = amb[amb.findEncodingSlot(scunic)]
         if glytc == glysc:
             return
         if scunic == glysc.unicode:
@@ -59,7 +59,7 @@ def ismulchar(char):
             return True
     return False
 
-def ForVarcodes():
+def addvariants():
     with open(os.path.join(pydir, 'datas/Variants.txt'), 'r', encoding = 'utf-8') as f:
         for line in f.readlines():
             vari = line.strip().split('\t')
@@ -77,7 +77,7 @@ def ForVarcodes():
                     if chcode not in amb and chcode not in alladdcds:
                         addunicodest(codein, chcode)
 
-def ForSTcodes():
+def transforme():
     with open(os.path.join(pydir, f'datas/Chars_{tabch}.txt'), 'r',encoding = 'utf-8') as f:
         for line in f.readlines():
             s, t = line.strip().split('\t')
@@ -240,17 +240,20 @@ if len(sys.argv) > 8:
     amb.reencode("unicodefull")
     alladdcds = set()
     tabch = sys.argv[3]
-    if tabch == "var" or sys.argv[4].lower() == "true" :
-        print('For Var codes...')
-        ForVarcodes()
+    if tabch == "var" or sys.argv[4].lower() == "true":
+        print('Adding variants...')
+        addvariants()
     if tabch != "var":
-        print('For ST codes...')
+        print('Transforming codes...')
         sgmulchar = sys.argv[5] == 'single'
-        ForSTcodes()
+        transforme()
     if sys.argv[5] == "multi":
         print('Removing glyghs...')
         removeglyhps()
-        print('For GSUB...')
+        if sys.argv[4].lower() == "true":
+            print('Recycling variants...')
+            addvariants()
+        print('Manage GSUB...')
         print('Adding chars lookups...')
         ForCharslookups()
         print('Adding words lookups...')
