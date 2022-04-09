@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows.Forms;
 
 namespace TCFontCreator
@@ -241,7 +241,7 @@ namespace TCFontCreator
 
         private void P_ErrorDataReceived(object sender, System.Diagnostics.DataReceivedEventArgs e)
         {
-            if (!string.IsNullOrWhiteSpace(e.Data) && e.Data.ToLower().Contains("error"))
+            if (!string.IsNullOrWhiteSpace(e.Data) && (e.Data.Contains("Error") || e.Data.Contains("ERROR")))
             {
                 err += e.Data + "\r\n";
             }
