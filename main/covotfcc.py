@@ -364,20 +364,21 @@ if len(sys.argv) > 8:
         print('Transforming codes...')
         sgmulchar = sys.argv[5] == 'single'
         transforme()
-    if sys.argv[5] == "multi":
-        print('Manage GSUB...')
-        font['cmap_rev'] = build_cmap_rev()
-        print('Removing glyghs...')
-        removeglyhps()
-        if sys.argv[4].lower() == "true":
-            print('Recycling variants...')
+        if sys.argv[5] == "multi":
+            print('Manage GSUB...')
+            font['cmap_rev'] = build_cmap_rev()
+            print('Removing glyghs...')
+            removeglyhps()
+            if sys.argv[4].lower() == "true":
+                print('Recycling variants...')
+                codepoints_font = set(map(int, font['cmap']))
+                addvariants()
+            print('Building lookup table...')
             codepoints_font = set(map(int, font['cmap']))
-            addvariants()
-        print('Building lookup table...')
-        codepoints_font = set(map(int, font['cmap']))
-        lookuptable()
-        del font['cmap_rev']
+            lookuptable()
+            del font['cmap_rev']
     if sys.argv[6]:
+        print('Setting font info...')
         setinfo()
     print('Generating font...')
     subprocess.run((otfccbuild, '-o', sys.argv[2], '--keep-modified-time'),
