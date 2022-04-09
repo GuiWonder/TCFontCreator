@@ -119,8 +119,10 @@ def removeglyhps():
 
 def addlookupschar(tcunic, scunic):
     if (tcunic in amb or tcunic in alladdcds) and (scunic in amb or scunic in alladdcds):
-        if amb[amb.findEncodingSlot(tcunic)].glyphname != amb[amb.findEncodingSlot(scunic)].glyphname:
-            amb[amb.findEncodingSlot(scunic)].addPosSub('stchar1', amb[amb.findEncodingSlot(tcunic)].glyphname)
+        gtc = amb[amb.findEncodingSlot(tcunic)]
+        gsc = amb[amb.findEncodingSlot(scunic)]
+        if gtc.glyphname != gsc.glyphname:
+            gsc.addPosSub('stchar1', gtc.glyphname)
 
 def addlookupsword(tcword, scword, j, num):
     newgname = 'ligastch_' + num
@@ -196,7 +198,7 @@ def ForWordslookups():
             num += 1
             addlookupsword(t, s, str(j), str(num))
 
-def SetHeader():
+def setinfo():
     enname = sys.argv[6]
     chname = sys.argv[7]
     psname = sys.argv[8]
@@ -254,19 +256,20 @@ if len(sys.argv) > 8:
         print('Transforming codes...')
         sgmulchar = sys.argv[5] == 'single'
         transforme()
-    if sys.argv[5] == "multi":
-        print('Removing glyghs...')
-        removeglyhps()
-        if sys.argv[4].lower() == "true":
-            print('Recycling variants...')
-            addvariants()
-        print('Manage GSUB...')
-        print('Adding chars lookups...')
-        ForCharslookups()
-        print('Adding words lookups...')
-        ForWordslookups()
+        if sys.argv[5] == "multi":
+            print('Removing glyghs...')
+            removeglyhps()
+            if sys.argv[4].lower() == "true":
+                print('Recycling variants...')
+                addvariants()
+            print('Manage GSUB...')
+            print('Adding chars lookups...')
+            ForCharslookups()
+            print('Adding words lookups...')
+            ForWordslookups()
     if sys.argv[6]:
-        SetHeader()
+        print('Setting font info...')
+        setinfo()
     print('Generating font...')
     amb.generate(sys.argv[2])
     print('Finished!')
