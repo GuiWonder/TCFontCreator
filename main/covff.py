@@ -10,8 +10,6 @@ pydir = os.path.abspath(os.path.dirname(__file__))
 def addunicodest(tcunic, scunic):
     if tcunic not in amb and tcunic not in alladdcds:
         return
-    if amb.findEncodingSlot(tcunic) == amb.findEncodingSlot(scunic):
-        return
     glytc = amb[amb.findEncodingSlot(tcunic)]
     if scunic in amb or scunic in alladdcds:
         glysc = amb[amb.findEncodingSlot(scunic)]
@@ -126,13 +124,22 @@ def addlookupschar(tcunic, scunic):
 
 def addlookupsword(tcword, scword, j, num):
     newgname = 'ligastch_' + num
-    wdin = []
-    wdout = []
+    wdin = list()
+    wdout = list()
     for s1 in scword:
-        glys = amb[amb.findEncodingSlot(ord(s1))]
+        try:
+            glys = amb[amb.findEncodingSlot(ord(s1))]
+        except TypeError:
+            print('Skip ' + s1)
+            return
         wdin.append(glys.glyphname)
     for t1 in tcword:
-        wdout.append(amb[amb.findEncodingSlot(ord(t1))].glyphname)
+        try:
+            glyt = amb[amb.findEncodingSlot(ord(t1))]
+        except TypeError:
+            print('Skip ' + t1)
+            return
+        wdout.append(glyt.glyphname)
     newg = amb.createChar(-1, str(newgname))
     newg.width = 1000
     newg.vwidth = 800
@@ -164,9 +171,15 @@ def ForWordslookups():
         i, j, num = 1, 1, 0
         amb.addLookupSubtable('stmult', 'stmult' + str(j))
         amb.addLookupSubtable('stliga', 'stliga' + str(j))
-        ls = []
+        ls = list()
         for line in f.readlines():
-            ls.append(line.strip().split(' ')[0])
+            isavail = True
+            for ch1 in line.strip().replace('\t', ''):
+                if ord(ch1) not in amb and ord(ch1) not in alladdcds:
+                    isavail = False
+                    break
+            if isavail:
+                ls.append(line.strip().split(' ')[0])
         ls.sort(key = len, reverse = True)
         for line in ls:
             s, t = line.strip().split('\t')
@@ -174,20 +187,14 @@ def ForWordslookups():
             t = t.strip()
             if not(s and t):
                 continue
-            effch = True
-            for ch1 in s + t:
-                if (ord(ch1) not in amb and ord(ch1) not in alladdcds) or amb.findEncodingSlot(ord(ch1)) < 0:
-                    effch = False
-                    break
-            if effch:
-                i += 1
-                if i >= 500:
-                    i = 1
-                    j += 1
-                    amb.addLookupSubtable('stmult', 'stmult' + str(j), 'stmult' + str(j - 1))
-                    amb.addLookupSubtable('stliga', 'stliga' + str(j), 'stliga' + str(j - 1))
-                num += 1
-                addlookupsword(t, s, str(j), str(num))
+            i += 1
+            if i >= 500:
+                i = 1
+                j += 1
+                amb.addLookupSubtable('stmult', 'stmult' + str(j), 'stmult' + str(j - 1))
+                amb.addLookupSubtable('stliga', 'stliga' + str(j), 'stliga' + str(j - 1))
+            num += 1
+            addlookupsword(t, s, str(j), str(num))
 
 def SetHeader():
     enname = sys.argv[6]
