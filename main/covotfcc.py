@@ -1,41 +1,130 @@
-import sys, json, subprocess
+import os, sys, json, subprocess
 from collections import defaultdict
 from datetime import date
-from itertools import chain, groupby
-from os import path
+from itertools import chain
 
-pydir = path.abspath(path.dirname(__file__))
-otfccdump = path.join(pydir, 'otfcc/otfccdump')
-otfccbuild = path.join(pydir, 'otfcc/otfccbuild')
+pydir = os.path.abspath(os.path.dirname(__file__))
+otfccdump = os.path.join(pydir, 'otfcc/otfccdump')
+otfccbuild = os.path.join(pydir, 'otfcc/otfccbuild')
 
-def build_cmap_rev():
-    cmap_rev = defaultdict(list)
-    for codepoint, glyph_name in font['cmap'].items():
-        cmap_rev[glyph_name].append(codepoint)
-    return cmap_rev
+def getmulchar():
+    s = str()
+    with open(os.path.join(pydir, 'datas/Multi.txt'), 'r', encoding = 'utf-8') as f:
+        for l1 in f.readlines():
+            if l1.strip():
+                s += l1.strip()
+    return s
 
-def code_to_name(codepoint):
-    return font['cmap'][str(codepoint)]
+def addvariants():
+    with open(os.path.join(pydir, 'datas/Variants.txt'),'r',encoding = 'utf-8') as f:
+        for line in f.readlines():
+            vari = line.strip().split('\t')
+            if len(vari) < 2:
+                continue
+            codein = 0
+            for ch1 in vari:
+                if ord(ch1) in fontcodes:
+                    codein = ord(ch1)
+                    break
+            if codein != 0:
+                for ch1 in vari:
+                    if ord(ch1) not in fontcodes:
+                        font['cmap'][str(ord(ch1))] = font['cmap'][str(codein)]
+                        fontcodes.add(ord(ch1))
+                        adduni.add(ord(ch1))
 
-def ismulchar(char):
-    with open(path.join(pydir, 'datas/Multi.txt'),'r',encoding = 'utf-8') as f:
-        mul = f.read()
-        if char in mul:
-            return True
-    return False
+def transforme():
+    with open(os.path.join(pydir, f'datas/Chars_{tabch}.txt'),'r',encoding = 'utf-8') as f:
+        for line in f.readlines():
+            s, t = line.strip().split('\t')
+            s = s.strip()
+            t = t.strip()
+            if s and t and s != t and (usemulchar or not s in mulchar):
+                if s and t and s != t:
+                    addunicodest(ord(t), ord(s))
 
 def addunicodest(tcunic, scunic):
-    if tcunic not in codepoints_font:
+    if tcunic not in fontcodes:
         return
-    tcname = code_to_name(tcunic)
+    tcname = font['cmap'][str(tcunic)]
     font['cmap'][str(scunic)] = tcname
-    codepoints_font.add(scunic)
+    fontcodes.add(scunic)
     adduni.add(scunic)
 
-def remove_glyph(glyph_name):
-    for codepoint in font['cmap_rev'][glyph_name]:
+def build_glyph_codes():
+    glyph_codes = defaultdict(list)
+    for codepoint, glyph_name in font['cmap'].items():
+        glyph_codes[glyph_name].append(codepoint)
+    return glyph_codes
+
+def removeglyhps():
+    s = set(chain(
+        range(0x0000, 0x007E + 1),
+        range(0x02B0, 0x02FF + 1),
+        range(0x2002, 0x203B + 1),
+        range(0x2E00, 0x2E7F + 1),
+        range(0x2E80, 0x2EFF + 1),
+        range(0x3000, 0x301C + 1),
+        range(0x3100, 0x312F + 1),
+        range(0x3190, 0x31BF + 1),
+        range(0xFE10, 0xFE1F + 1),
+        range(0xFE30, 0xFE4F + 1),
+        range(0xFF01, 0xFF5E + 1),
+        range(0xFF5F, 0xFF65 + 1),
+    ))
+    with open(os.path.join(pydir, 'datas/Hans.txt'),'r',encoding = 'utf-8') as f:
+        for line in f.readlines():
+            if line.strip() and not line.strip().startswith('#'):
+                s.add(int(ord(line.strip())))
+    codes_final = s.union(adduni) & fontcodes
+    to_del = fontcodes - codes_final
+    for codepoint in to_del:
+        if str(codepoint) in font['cmap']:
+            glyph_name = font['cmap'].get(str(codepoint))
+            if glyph_name and set(map(int, font['glyph_codes'][glyph_name])).issubset(to_del):
+                removecodes(glyph_name)
+    for glyph_name in set(font['glyph_order']) - get_use_glyphs():
+        if not glyph_name.startswith('.'):
+            remove_glyph(glyph_name)
+
+def removecodes(glyph_name):
+    for codepoint in font['glyph_codes'][glyph_name]:
         del font['cmap'][codepoint]
-    del font['cmap_rev'][glyph_name]
+    del font['glyph_codes'][glyph_name]
+
+def get_use_glyphs():
+    use_glyphs = set()
+    for glyph_name in font['cmap'].values():
+        use_glyphs.add(glyph_name)
+        if 'GSUB' in font:
+            for lookup in font['GSUB']['lookups'].values():
+                if lookup['type'] == 'gsub_single':
+                    for subtable in lookup['subtables']:
+                        for a, b in subtable.items():
+                            if glyph_name == a:
+                                use_glyphs.add(b)
+                elif lookup['type'] == 'gsub_alternate':
+                    for subtable in lookup['subtables']:
+                        for a, b1 in subtable.items():
+                            if glyph_name == a:
+                                use_glyphs.update(b1)
+                elif lookup['type'] == 'gsub_ligature':
+                    for subtable in lookup['subtables']:
+                        for item in subtable['substitutions']:
+                            if glyph_name in item['from']:
+                                use_glyphs.add(item['to'])
+                elif lookup['type'] == 'gsub_chaining':
+                    for subtable in lookup['subtables']:
+                        if glyph_name in subtable['match']:
+                            use_glyphs.add(subtable['match'])
+                else:
+                    print('Skip lookup type ' + lookup['type'])
+    return use_glyphs
+
+def remove_glyph(glyph_name):
+    for codepoint in font['glyph_codes'][glyph_name]:
+        del font['cmap'][codepoint]
+    del font['glyph_codes'][glyph_name]
     try:
         font['glyph_order'].remove(glyph_name)
     except ValueError:
@@ -45,27 +134,22 @@ def remove_glyph(glyph_name):
         for lookup in font['GSUB']['lookups'].values():
             if lookup['type'] == 'gsub_single':
                 for subtable in lookup['subtables']:
-                    for k, v in list(subtable.items()):
-                        if glyph_name == k or glyph_name == v:
-                            del subtable[k]
+                    for a, b in list(subtable.items()):
+                        if glyph_name == a or glyph_name == b:
+                            del subtable[a]
             elif lookup['type'] == 'gsub_alternate':
                 for subtable in lookup['subtables']:
-                    for k, v in list(subtable.items()):
-                        if glyph_name == k or glyph_name in v:
-                            del subtable[k]
+                    for a, b in list(subtable.items()):
+                        if glyph_name == a or glyph_name in b:
+                            del subtable[a]
             elif lookup['type'] == 'gsub_ligature':
                 for subtable in lookup['subtables']:
                     def predicate(
                         item): return glyph_name not in item['from'] and glyph_name != item['to']
                     subtable['substitutions'][:] = filter(
                         predicate, subtable['substitutions'])
-            elif lookup['type'] == 'gsub_chaining':
-                for subtable in lookup['subtables']:
-                    for item in subtable['match']:
-                        if glyph_name in item:
-                            del subtable
             else:
-                print('1.NotImplementedError.Unknown GSUB lookup type')
+                print('Skip lookup type ' + lookup['type'])
     if 'GPOS' in font:
         for lookup in font['GPOS']['lookups'].values():
             if lookup['type'] == 'gpos_single':
@@ -75,91 +159,70 @@ def remove_glyph(glyph_name):
                 for subtable in lookup['subtables']:
                     subtable['first'].pop(glyph_name, None)
                     subtable['second'].pop(glyph_name, None)
-            elif lookup['type'] == 'gpos_mark_to_base':
-                for subtable in lookup['subtables']:
-                    if glyph_name in subtable['marks'] or glyph_name in subtable['bases']:
-                        del subtable
             else:
-                print('2.NotImplementedError.Unknown GPOS lookup type')
+                print('Skip lookup type ' + lookup['type'])
 
-def get_use_glyphs():
-    reachable_glyphs = {'.notdef', '.null'}
-    for glyph_name in font['cmap'].values():
-        reachable_glyphs.add(glyph_name)
-        if 'GSUB' in font:
-            for lookup in font['GSUB']['lookups'].values():
-                if lookup['type'] == 'gsub_single':
-                    for subtable in lookup['subtables']:
-                        for k, v in subtable.items():
-                            if glyph_name == k:
-                                reachable_glyphs.add(v)
-                elif lookup['type'] == 'gsub_alternate':
-                    for subtable in lookup['subtables']:
-                        for k, vs in subtable.items():
-                            if glyph_name == k:
-                                reachable_glyphs.update(vs)
-                elif lookup['type'] == 'gsub_ligature':
-                    for subtable in lookup['subtables']:
-                        for item in subtable['substitutions']:
-                            if glyph_name in item['from']:
-                                reachable_glyphs.add(item['to'])
-                elif lookup['type'] == 'gsub_chaining':
-                    for subtable in lookup['subtables']:
-                        if glyph_name in subtable['match']:
-                            reachable_glyphs.add(subtable['match'])
-                else:
-                    print('3.NotImplementedError.Unknown GSUB lookup type')
-    return reachable_glyphs
-
-def insert_empty_glyph(name):
-    font['glyf'][name] = {'advanceWidth': 0,
-                         'advanceHeight': 1000, 'verticalOrigin': 880}
-    font['glyph_order'].append(name)
-
-def grouper(iterable, n=4000):
-    iterator = iter(iterable)
-    while True:
-        lst = []
-        try:
-            for _ in range(n):
-                lst.append(next(iterator))
-        except StopIteration:
-            if lst:
-                yield lst
-            break
-        yield lst
-
-def grouper2(iterable, n=4000, key=None):
-    for _, vx in groupby(iterable, key=key):
-        for vs in grouper(vx, n):
-            yield vs
+def lookuptable():
+    print('Building lookups...')
+    if not 'GSUB' in font:
+        print('Creating empty GSUB!')
+        font['GSUB'] = {
+                            'languages': 
+                            {
+                                'hani_DFLT': 
+                                {
+                                    'features': []
+                                }
+                            }, 
+                            'features': {}, 
+                            'lookups': {}, 
+                            'lookupOrder': []
+                        }
+    for table in font['GSUB']['languages'].values():
+        table['features'].append('liga_st')
+    font['GSUB']['features']['liga_st'] = ['wordsc', 'stchars', 'wordtc']
+    font['GSUB']['lookupOrder'].append('wordsc')
+    font['GSUB']['lookupOrder'].append('stchars')
+    font['GSUB']['lookupOrder'].append('wordtc')
+    build_char_table()
+    build_word_table()
 
 def build_char_table():
     chartab = []
-    with open(path.join(pydir, f'datas/Chars_{tabch}.txt'),'r',encoding = 'utf-8') as f:
+    with open(os.path.join(pydir, f'datas/Chars_{tabch}.txt'),'r',encoding = 'utf-8') as f:
         for line in f.readlines():
             s, t = line.strip().split('\t')
             s = s.strip()
             t = t.strip()
-            if s and t and ismulchar(s) and s != t:
-                codes = ord(s)
-                codet = ord(t)
-                if codes in codepoints_font and codet in codepoints_font:
-                    chartab.append((code_to_name(codes), code_to_name(codet)))
-    with open(path.join(pydir, 'datas/Punctuation.txt'),'r',encoding = 'utf-8') as f:
+            if s and t and s != t and s in mulchar:
+                codesc = ord(s)
+                codetc = ord(t)
+                if codesc in fontcodes and codetc in fontcodes:
+                    chartab.append((s, t))
+    with open(os.path.join(pydir, 'datas/Punctuation.txt'),'r',encoding = 'utf-8') as f:
         for line in f.readlines():
             s, t = line.strip().split('\t')
             if s and t and s != t:
-                codes = ord(s)
-                codet = ord(t)
-                if codes in codepoints_font and codet in codepoints_font:
-                    chartab.append((code_to_name(codes), code_to_name(codet)))
-    return chartab
+                codesc = ord(s)
+                codetc = ord(t)
+                if codesc in fontcodes and codetc in fontcodes:
+                    chartab.append((s, t))
+    addlookupschar(chartab)
+
+def addlookupschar(chtab):
+    kt = dict()
+    for s, t in chtab:
+        kt[font['cmap'][str(ord(s))]] = font['cmap'][str(ord(t))]
+    font['GSUB']['lookups']['stchars'] = {
+                                            'type': 'gsub_single',
+                                            'flags': {},
+                                            'subtables': [kt]
+                                         }
 
 def build_word_table():
-    entries = []
-    with open(path.join(pydir, 'datas/STPhrases.txt'),'r',encoding = 'utf-8') as f:
-        ls = []
+    stword = list()
+    with open(os.path.join(pydir, 'datas/STPhrases.txt'),'r',encoding = 'utf-8') as f:
+        ls = list()
         for line in f.readlines():
             ls.append(line.strip().split(' ')[0])
         ls.sort(key=len, reverse=True)
@@ -169,52 +232,58 @@ def build_word_table():
             t = t.strip()
             if not(s and t):
                 continue
-            codes = tuple(ord(c) for c in s)
-            codet = tuple(ord(c) for c in t)
-            if all(codepoint in codepoints_font for codepoint in codes) \
-                    and all(codepoint in codepoints_font for codepoint in codet):
-                entries.append((codes, codet))
-    return entries
+            codesc = tuple(ord(c) for c in s)
+            codetc = tuple(ord(c) for c in t)
+            if all(codepoint in fontcodes for codepoint in codesc) \
+                    and all(codepoint in fontcodes for codepoint in codetc):
+                stword.append((s, t))
+    if len(stword) > 0:
+        addlookupword(stword)
 
-def insert_empty_feature(feature_name):
-    for table in font['GSUB']['languages'].values():
-        table['features'].append(feature_name)
-    font['GSUB']['features'][feature_name] = []
-
-def create_word2pseu_table(feature_name, conversions):
-    def conversion_item_len(conversion_item): return len(conversion_item[0])
-    subtables = [{'substitutions': [{'from': glyph_names_k, 'to': pseudo_glyph_name} for glyph_names_k, pseudo_glyph_name in subtable]}
-                 for subtable in grouper2(conversions, key = conversion_item_len)]
-    font['GSUB']['features'][feature_name].append('word2pseu')
-    font['GSUB']['lookups']['word2pseu'] = {
-        'type': 'gsub_ligature',
-        'flags': {},
-        'subtables': subtables
-    }
-    font['GSUB']['lookupOrder'].append('word2pseu')
-
-def create_char2char_table(feature_name, conversions):
-    subtables = [{k: v for k, v in subtable}
-                 for subtable in grouper(conversions)]
-    font['GSUB']['features'][feature_name].append('char2char')
-    font['GSUB']['lookups']['char2char'] = {
-        'type': 'gsub_single',
-        'flags': {},
-        'subtables': subtables
-    }
-    font['GSUB']['lookupOrder'].append('char2char')
-
-def create_pseu2word_table(feature_name, conversions):
-    def conversion_item_len(conversion_item): return len(conversion_item[1])
-    subtables = [{k: v for k, v in subtable}
-                 for subtable in grouper2(conversions, key = conversion_item_len)]
-    font['GSUB']['features'][feature_name].append('pseu2word')
-    font['GSUB']['lookups']['pseu2word'] = {
-        'type': 'gsub_multiple',
-        'flags': {},
-        'subtables': subtables
-    }
-    font['GSUB']['lookupOrder'].append('pseu2word')
+def addlookupword(stword):
+    subtablesl = list()
+    subtablesm = list()
+    i, j = 0, 0
+    sbs = list()
+    sbt = dict()
+    while True:
+        wds = list()
+        wdt = list()
+        for s1 in stword[i][0]:
+            wds.append(font['cmap'][str(ord(s1))])
+        for t1 in stword[i][1]:
+            wdt.append(font['cmap'][str(ord(t1))])
+        newgname = 'ligast' + str(i)
+        font['glyf'][newgname] = {
+                                    'advanceWidth': 0, 
+                                    'advanceHeight': 1000, 
+                                    'verticalOrigin': 880
+                                 }
+        font['glyph_order'].append(newgname)
+        sbs.append({'from': wds, 'to': newgname})
+        sbt[newgname] = wdt
+        if i >= len(stword) - 1:
+            subtablesl.append({'substitutions': sbs})
+            subtablesm.append(sbt)
+            break
+        j += len(stword[i][0] + stword[i][1])
+        if j >= 15000:
+            j = 0
+            subtablesl.append({'substitutions': sbs})
+            subtablesm.append(sbt)
+            sbs = list()
+            sbt = dict()
+        i += 1
+    font['GSUB']['lookups']['wordsc'] = {
+                                            'type': 'gsub_ligature',
+                                            'flags': {},
+                                            'subtables': subtablesl
+                                        }
+    font['GSUB']['lookups']['wordtc'] = {
+                                            'type': 'gsub_multiple',
+                                            'flags': {},
+                                            'subtables': subtablesm
+                                        }
 
 def setinfo():
     enname = sys.argv[6]
@@ -268,93 +337,10 @@ def setinfo():
         {'platformID': 3, 'encodingID': 1, 'languageID': 3076, 'nameID': 16, 'nameString': chname},
     ]
 
-def addvariants():
-    with open(path.join(pydir, 'datas/Variants.txt'),'r',encoding = 'utf-8') as f:
-        for line in f.readlines():
-            vari = line.strip().split('\t')
-            if len(vari) < 2:
-                continue
-            codein = 0
-            for ch1 in vari:
-                if ord(ch1) in codepoints_font:
-                    codein = ord(ch1)
-                    break
-            if codein != 0:
-                for ch1 in vari:
-                    if ord(ch1) not in codepoints_font:
-                        font['cmap'][str(ord(ch1))] = code_to_name(codein)
-                        codepoints_font.add(ord(ch1))
-                        adduni.add(ord(ch1))
-
-def transforme():
-    with open(path.join(pydir, f'datas/Chars_{tabch}.txt'),'r',encoding = 'utf-8') as f:
-        for line in f.readlines():
-            s, t = line.strip().split('\t')
-            s = s.strip()
-            t = t.strip()
-            if sgmulchar or not ismulchar(s):
-                if s and t and s != t:
-                    addunicodest(ord(t), ord(s))
-
-def removeglyhps():
-    s = set(chain(
-        range(0x0000, 0x007E + 1),
-        range(0x02B0, 0x02FF + 1),
-        range(0x2002, 0x203B + 1),
-        range(0x2E00, 0x2E7F + 1),
-        range(0x2E80, 0x2EFF + 1),
-        range(0x3000, 0x301C + 1),
-        range(0x3100, 0x312F + 1),
-        range(0x3190, 0x31BF + 1),
-        range(0xFE10, 0xFE1F + 1),
-        range(0xFE30, 0xFE4F + 1),
-        range(0xFF01, 0xFF5E + 1),
-        range(0xFF5F, 0xFF65 + 1),
-    ))
-    with open(path.join(pydir, 'datas/Hans.txt'),'r',encoding = 'utf-8') as f:
-        for line in f.readlines():
-            if line.strip() and not line.strip().startswith('#'):
-                s.add(int(ord(line.strip())))
-    codepoints_final = s.union(adduni) & codepoints_font
-    to_del = codepoints_font - codepoints_final
-    for codepoint in to_del:
-        if str(codepoint) in font['cmap']:
-            glyph_name = font['cmap'].get(str(codepoint))
-            if glyph_name and set(map(int, font['cmap_rev'][glyph_name])).issubset(to_del):
-                remove_glyph(glyph_name)
-    for glyph_name in set(font['glyph_order']) - get_use_glyphs():
-        remove_glyph(glyph_name)
-
-def lookuptable():
-    entries_word = build_word_table()
-    available_glyph_count = 65535 - len(font['glyph_order'])
-    if len(entries_word) > available_glyph_count:
-        print('You need ' + str(len(entries_word) - available_glyph_count) + ' more space!')
-        return
-    word2pseu_table = []
-    char2char_table = build_char_table()
-    pseu2word_table = []
-    for i, (codes, codet) in enumerate(entries_word):
-        empty_glyph_name = 'pseu%X' % i
-        names = [code_to_name(codepoint) for codepoint in codes]
-        namet = [code_to_name(codepoint) for codepoint in codet]
-        insert_empty_glyph(empty_glyph_name)
-        word2pseu_table.append((names, empty_glyph_name))
-        pseu2word_table.append((empty_glyph_name, namet))
-    print('Building lookups...')
-    if not 'GSUB' in font:
-        print('Creating empty GSUB!')
-        font['GSUB'] = {'languages': {'hani_DFLT': {'features': []}}, 'features': {}, 'lookups': {}, 'lookupOrder': []}
-    feature_name = 'liga_s2t'
-    insert_empty_feature(feature_name)
-    create_word2pseu_table(feature_name, word2pseu_table)
-    create_char2char_table(feature_name, char2char_table)
-    create_pseu2word_table(feature_name, pseu2word_table)
-
 if len(sys.argv) > 8:
     print('Loading font...')
     font = json.loads(subprocess.check_output((otfccdump, sys.argv[1])))
-    codepoints_font = set(map(int, font['cmap']))
+    fontcodes = set(map(int, font['cmap']))
     adduni = set()
     tabch = sys.argv[3]
     if tabch == "var" or sys.argv[4].lower() == "true":
@@ -362,21 +348,22 @@ if len(sys.argv) > 8:
         addvariants()
     if tabch != "var":
         print('Transforming codes...')
-        sgmulchar = sys.argv[5] == 'single'
+        usemulchar = sys.argv[5] == 'single'
+        mulchar = getmulchar()
         transforme()
         if sys.argv[5] == "multi":
             print('Manage GSUB...')
-            font['cmap_rev'] = build_cmap_rev()
+            font['glyph_codes'] = build_glyph_codes()
             print('Removing glyghs...')
             removeglyhps()
             if sys.argv[4].lower() == "true":
                 print('Recycling variants...')
-                codepoints_font = set(map(int, font['cmap']))
+                fontcodes = set(map(int, font['cmap']))
                 addvariants()
             print('Building lookup table...')
-            codepoints_font = set(map(int, font['cmap']))
+            fontcodes = set(map(int, font['cmap']))
             lookuptable()
-            del font['cmap_rev']
+            del font['glyph_codes']
     if sys.argv[6]:
         print('Setting font info...')
         setinfo()
