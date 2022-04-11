@@ -7,6 +7,41 @@ from itertools import chain
 
 pydir = os.path.abspath(os.path.dirname(__file__))
 
+def getmulchar():
+    s = str()
+    with open(os.path.join(pydir, 'datas/Multi.txt'), 'r', encoding = 'utf-8') as f:
+        for l1 in f.readlines():
+            if l1.strip():
+                s += l1.strip()
+    return s
+
+def addvariants():
+    with open(os.path.join(pydir, 'datas/Variants.txt'), 'r', encoding = 'utf-8') as f:
+        for line in f.readlines():
+            vari = line.strip().split('\t')
+            if len(vari) < 2:
+                continue
+            codein = 0
+            for ch1 in vari:
+                chcode = ord(ch1)
+                if chcode in amb or chcode in alladdcds:
+                    codein = chcode
+                    break
+            if codein != 0:
+                for ch1 in vari:
+                    chcode = ord(ch1)
+                    if chcode not in amb and chcode not in alladdcds:
+                        addunicodest(codein, chcode)
+
+def transforme():
+    with open(os.path.join(pydir, f'datas/Chars_{tabch}.txt'), 'r',encoding = 'utf-8') as f:
+        for line in f.readlines():
+            s, t = line.strip().split('\t')
+            s = s.strip()
+            t = t.strip()
+            if s and t and s != t and (usemulchar or not s in mulchar):
+                addunicodest(ord(t), ord(s))
+
 def addunicodest(tcunic, scunic):
     if tcunic not in amb and tcunic not in alladdcds:
         return
@@ -50,41 +85,6 @@ def addunicodest(tcunic, scunic):
     glytc.altuni = ll
     alladdcds.add(scunic)
 
-def ismulchar(char):
-    with open(os.path.join(pydir, 'datas/Multi.txt'), 'r', encoding = 'utf-8') as f:
-        mul = f.read()
-        if char in mul:
-            return True
-    return False
-
-def addvariants():
-    with open(os.path.join(pydir, 'datas/Variants.txt'), 'r', encoding = 'utf-8') as f:
-        for line in f.readlines():
-            vari = line.strip().split('\t')
-            if len(vari) < 2:
-                continue
-            codein = 0
-            for ch1 in vari:
-                chcode = ord(ch1)
-                if chcode in amb or chcode in alladdcds:
-                    codein = chcode
-                    break
-            if codein != 0:
-                for ch1 in vari:
-                    chcode = ord(ch1)
-                    if chcode not in amb and chcode not in alladdcds:
-                        addunicodest(codein, chcode)
-
-def transforme():
-    with open(os.path.join(pydir, f'datas/Chars_{tabch}.txt'), 'r',encoding = 'utf-8') as f:
-        for line in f.readlines():
-            s, t = line.strip().split('\t')
-            s = s.strip()
-            t = t.strip()
-            if sgmulchar or not ismulchar(s):
-                if s and t and s != t:
-                    addunicodest(ord(t), ord(s))
-
 def removeglyhps():
     alcodes = set(chain(
         range(0x0000, 0x007E + 1),
@@ -117,6 +117,24 @@ def removeglyhps():
         if rmit:
             amb.removeGlyph(gls)
 
+def ForCharslookups():
+    amb.addLookup('stchar', 'gsub_single', None, (("liga",(("hani",("dflt")),)),))
+    amb.addLookupSubtable('stchar', 'stchar1')
+    with open(os.path.join(pydir, f'datas/Chars_{tabch}.txt'), 'r',encoding = 'utf-8') as f:
+        for line in f.readlines():
+            s, t = line.strip().split('\t')
+            s = s.strip()
+            t = t.strip()
+            if s and t and s != t and s in mulchar:
+                addlookupschar(ord(t), ord(s))
+    with open(os.path.join(pydir, 'datas/Punctuation.txt'), 'r',encoding = 'utf-8') as f:
+        for line in f.readlines():
+            s, t = line.strip().split('\t')
+            s = s.strip()
+            t = t.strip()
+            if s and t and s != t:
+                addlookupschar(ord(t), ord(s))
+
 def addlookupschar(tcunic, scunic):
     if (tcunic in amb or tcunic in alladdcds) and (scunic in amb or scunic in alladdcds):
         gtc = amb[amb.findEncodingSlot(tcunic)]
@@ -124,8 +142,40 @@ def addlookupschar(tcunic, scunic):
         if gtc.glyphname != gsc.glyphname:
             gsc.addPosSub('stchar1', gtc.glyphname)
 
+def ForWordslookups():
+    ls = list()
+    with open(os.path.join(pydir, 'datas/STPhrases.txt'),'r',encoding = 'utf-8') as f:
+        for line in f.readlines():
+            isavail = True
+            for ch1 in line.strip().replace('\t', '').replace(' ', ''):
+                if ord(ch1) not in amb and ord(ch1) not in alladdcds:
+                    isavail = False
+                    break
+            if isavail:
+                ls.append(line.strip().split(' ')[0])
+    ls.sort(key = len, reverse = True)
+    amb.addLookup('stmult', 'gsub_multiple', None, (("liga",(("hani",("dflt")),)),), 'stchar')
+    amb.addLookup('stliga', 'gsub_ligature', None, (("liga",(("hani",("dflt")),)),))
+    i, j, num = 0, 0, 0
+    amb.addLookupSubtable('stmult', 'stmult0')
+    amb.addLookupSubtable('stliga', 'stliga0')
+    for line in ls:
+        s, t = line.strip().split('\t')
+        s = s.strip()
+        t = t.strip()
+        if not(s and t):
+            continue
+        i += len(s + t)
+        if i >= 15000:
+            i = 0
+            j += 1
+            amb.addLookupSubtable('stmult', 'stmult' + str(j), 'stmult' + str(j - 1))
+            amb.addLookupSubtable('stliga', 'stliga' + str(j), 'stliga' + str(j - 1))
+        num += 1
+        addlookupsword(t, s, str(j), str(num))
+
 def addlookupsword(tcword, scword, j, num):
-    newgname = 'ligastch_' + num
+    newgname = 'ligast' + num
     wdin = list()
     wdout = list()
     for s1 in scword:
@@ -142,61 +192,11 @@ def addlookupsword(tcword, scword, j, num):
             print('Skip ' + t1)
             return
         wdout.append(glyt.glyphname)
-    newg = amb.createChar(-1, str(newgname))
+    newg = amb.createChar(-1, newgname)
     newg.width = 1000
     newg.vwidth = 800
     newg.addPosSub('stliga' + j, tuple(wdin))
     newg.addPosSub('stmult' + j, tuple(wdout))
-
-def ForCharslookups():
-    amb.addLookup('stchar', 'gsub_single', None, (("liga",(("hani",("dflt")),)),))
-    amb.addLookupSubtable('stchar', 'stchar1')
-    with open(os.path.join(pydir, f'datas/Chars_{tabch}.txt'), 'r',encoding = 'utf-8') as f:
-        for line in f.readlines():
-            s, t = line.strip().split('\t')
-            s = s.strip()
-            t = t.strip()
-            if s and t and ismulchar(s) and s != t:
-                addlookupschar(ord(t), ord(s))
-    with open(os.path.join(pydir, 'datas/Punctuation.txt'), 'r',encoding = 'utf-8') as f:
-        for line in f.readlines():
-            s, t = line.strip().split('\t')
-            s = s.strip()
-            t = t.strip()
-            if s and t and s != t:
-                addlookupschar(ord(t), ord(s))
-
-def ForWordslookups():
-    amb.addLookup('stmult', 'gsub_multiple', None, (("liga",(("hani",("dflt")),)),), 'stchar')
-    amb.addLookup('stliga', 'gsub_ligature', None, (("liga",(("hani",("dflt")),)),))
-    with open(os.path.join(pydir, 'datas/STPhrases.txt'),'r',encoding = 'utf-8') as f:
-        i, j, num = 1, 1, 0
-        amb.addLookupSubtable('stmult', 'stmult' + str(j))
-        amb.addLookupSubtable('stliga', 'stliga' + str(j))
-        ls = list()
-        for line in f.readlines():
-            isavail = True
-            for ch1 in line.strip().replace('\t', ''):
-                if ord(ch1) not in amb and ord(ch1) not in alladdcds:
-                    isavail = False
-                    break
-            if isavail:
-                ls.append(line.strip().split(' ')[0])
-        ls.sort(key = len, reverse = True)
-        for line in ls:
-            s, t = line.strip().split('\t')
-            s = s.strip()
-            t = t.strip()
-            if not(s and t):
-                continue
-            i += 1
-            if i >= 500:
-                i = 1
-                j += 1
-                amb.addLookupSubtable('stmult', 'stmult' + str(j), 'stmult' + str(j - 1))
-                amb.addLookupSubtable('stliga', 'stliga' + str(j), 'stliga' + str(j - 1))
-            num += 1
-            addlookupsword(t, s, str(j), str(num))
 
 def setinfo():
     enname = sys.argv[6]
@@ -254,7 +254,8 @@ if len(sys.argv) > 8:
         addvariants()
     if tabch != "var":
         print('Transforming codes...')
-        sgmulchar = sys.argv[5] == 'single'
+        usemulchar = sys.argv[5] == 'single'
+        mulchar = getmulchar()
         transforme()
         if sys.argv[5] == "multi":
             print('Removing glyghs...')
