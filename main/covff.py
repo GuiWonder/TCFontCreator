@@ -143,7 +143,7 @@ def addlookupschar(tcunic, scunic):
             gsc.addPosSub('stchar1', gtc.glyphname)
 
 def ForWordslookups():
-    ls = list()
+    stword = list()
     with open(os.path.join(pydir, 'datas/STPhrases.txt'),'r',encoding = 'utf-8') as f:
         for line in f.readlines():
             isavail = True
@@ -152,30 +152,34 @@ def ForWordslookups():
                     isavail = False
                     break
             if isavail:
-                ls.append(line.strip().split(' ')[0])
-    ls.sort(key = len, reverse = True)
+                s, t = line.strip().split(' ')[0].split('\t')
+                if s.strip() and t.strip():
+                    stword.append((s.strip(), t.strip()))
+    if len(stword) < 1:
+        return
+    sumf = sum(1 for _ in amb.glyphs())
+    if len(stword) + sumf > 65535:
+        raise RuntimeError('Not enough glyph space! You need ' + str(len(stword) + sumf - 65535) + ' more glyph space!')
+    stword.sort(key=lambda x:len(x[0]), reverse = True)
     amb.addLookup('stmult', 'gsub_multiple', None, (("liga",(("hani",("dflt")),)),), 'stchar')
     amb.addLookup('stliga', 'gsub_ligature', None, (("liga",(("hani",("dflt")),)),))
-    i, j, num = 0, 0, 0
+    i, j, tlen, wlen = 0, 0, 0, len(stword[0][0])
     amb.addLookupSubtable('stmult', 'stmult0')
     amb.addLookupSubtable('stliga', 'stliga0')
-    for line in ls:
-        s, t = line.strip().split('\t')
-        s = s.strip()
-        t = t.strip()
-        if not(s and t):
-            continue
-        i += len(s + t)
-        if i >= 15000:
-            i = 0
+    for wd in stword:
+        tlen += len(wd[0] + wd[1])
+        wlen2 = len(stword[i][0])
+        if tlen >= 15000 or wlen2 < wlen:
+            tlen = 0
+            wlen = wlen2
             j += 1
             amb.addLookupSubtable('stmult', 'stmult' + str(j), 'stmult' + str(j - 1))
             amb.addLookupSubtable('stliga', 'stliga' + str(j), 'stliga' + str(j - 1))
-        num += 1
-        addlookupsword(t, s, str(j), str(num))
+        i += 1
+        addlookupsword(wd[1], wd[0], str(j), str(i))
 
-def addlookupsword(tcword, scword, j, num):
-    newgname = 'ligast' + num
+def addlookupsword(tcword, scword, j, i):
+    newgname = 'ligast' + i
     wdin = list()
     wdout = list()
     for s1 in scword:
