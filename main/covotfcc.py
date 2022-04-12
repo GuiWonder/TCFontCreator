@@ -225,7 +225,6 @@ def build_word_table():
         ls = list()
         for line in f.readlines():
             ls.append(line.strip().split(' ')[0])
-        ls.sort(key=len, reverse=True)
         for line in ls:
             s, t = line.strip().split('\t')
             s = s.strip()
@@ -237,15 +236,20 @@ def build_word_table():
             if all(codepoint in fontcodes for codepoint in codesc) \
                     and all(codepoint in fontcodes for codepoint in codetc):
                 stword.append((s, t))
+    if len(stword) + len(font['glyph_order']) > 65535:
+        nd=len(stword) + len(font['glyph_order']) - 65535
+        raise RuntimeError('Not enough glyph space! You need ' + str(nd) + ' more glyph space!')
     if len(stword) > 0:
         addlookupword(stword)
 
 def addlookupword(stword):
+    stword.sort(key=lambda x:len(x[0]), reverse = True)
     subtablesl = list()
     subtablesm = list()
     i, j = 0, 0
     sbs = list()
     sbt = dict()
+    wlen = len(stword[0][0])
     while True:
         wds = list()
         wdt = list()
@@ -267,8 +271,10 @@ def addlookupword(stword):
             subtablesm.append(sbt)
             break
         j += len(stword[i][0] + stword[i][1])
-        if j >= 15000:
+        wlen2 = len(stword[i + 1][0])
+        if j >= 20000 or wlen2 < wlen:
             j = 0
+            wlen = wlen2
             subtablesl.append({'substitutions': sbs})
             subtablesm.append(sbt)
             sbs = list()
