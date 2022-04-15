@@ -60,7 +60,6 @@ while True:
     else:
         multi='no'
     print('正在处理，请耐心等待....\n')
-    #print(infile, outfile, stmode, vari, multi, enname, chname, psname, version)
     subprocess.run((fontforge, '-script', pyfile, infile, outfile, stmode, vari, multi, enname, chname, psname, version))
     print('\n处理完毕。\n')
     otherfont=str()
