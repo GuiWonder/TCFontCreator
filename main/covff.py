@@ -103,8 +103,9 @@ def removeglyhps():
     with open(os.path.join(pydir, 'datas/Hans.txt'), 'r',encoding = 'utf-8') as f:
         for line in f.readlines():
             if line.strip() and not line.strip().startswith('#'):
-                alcodes.add(int(ord(line.strip())))
+                alcodes.add(ord(line.strip()))
     alcodes.update(alladdcds)
+    useg=set()
     for gls in amb.glyphs():
         rmit = True
         if gls.glyphname.startswith('.') or gls.unicode in alcodes:
@@ -114,7 +115,18 @@ def removeglyhps():
                 if uni[0] in alcodes:
                     rmit = False
                     break
-        if rmit:
+        if not rmit:
+            useg.add(gls.glyphname)
+    reget=set()
+    for gly in useg:
+        tg=amb[gly].getPosSub('*')
+        if len(tg)>0:
+            for t1 in tg:
+                if t1[1]=='Substitution' and t1[2] not in useg:
+                    reget.add(t1[2])
+    useg.update(reget)
+    for gls in amb.glyphs():
+        if gls.glyphname not in useg:
             amb.removeGlyph(gls)
 
 def ForCharslookups():
@@ -247,7 +259,7 @@ def setinfo():
     )
     amb.sfnt_names = sfntnames
 
-if len(sys.argv) > 8:
+if len(sys.argv) > 5:
     print('Loading font...')
     amb = fontforge.open(sys.argv[1])
     amb.reencode("unicodefull")
@@ -272,7 +284,7 @@ if len(sys.argv) > 8:
             ForCharslookups()
             print('Adding words lookups...')
             ForWordslookups()
-    if sys.argv[6]:
+    if len(sys.argv) > 9 and sys.argv[6]:
         print('Setting font info...')
         setinfo()
     print('Generating font...')
