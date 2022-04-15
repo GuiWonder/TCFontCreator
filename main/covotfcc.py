@@ -40,8 +40,7 @@ def transforme():
             s = s.strip()
             t = t.strip()
             if s and t and s != t and (usemulchar or not s in mulchar):
-                if s and t and s != t:
-                    addunicodest(ord(t), ord(s))
+                addunicodest(ord(t), ord(s))
 
 def addunicodest(tcunic, scunic):
     if tcunic not in fontcodes:
@@ -75,22 +74,22 @@ def removeglyhps():
     with open(os.path.join(pydir, 'datas/Hans.txt'),'r',encoding = 'utf-8') as f:
         for line in f.readlines():
             if line.strip() and not line.strip().startswith('#'):
-                s.add(int(ord(line.strip())))
+                s.add(ord(line.strip()))
     codes_final = s.union(adduni) & fontcodes
     to_del = fontcodes - codes_final
     for codepoint in to_del:
         if str(codepoint) in font['cmap']:
             glyph_name = font['cmap'].get(str(codepoint))
-            if glyph_name and set(map(int, font['glyph_codes'][glyph_name])).issubset(to_del):
+            if glyph_name and set(map(int, glyph_codes[glyph_name])).issubset(to_del):
                 removecodes(glyph_name)
     for glyph_name in set(font['glyph_order']) - get_use_glyphs():
         if not glyph_name.startswith('.'):
             remove_glyph(glyph_name)
 
 def removecodes(glyph_name):
-    for codepoint in font['glyph_codes'][glyph_name]:
+    for codepoint in glyph_codes[glyph_name]:
         del font['cmap'][codepoint]
-    del font['glyph_codes'][glyph_name]
+    del glyph_codes[glyph_name]
 
 def get_use_glyphs():
     use_glyphs = set()
@@ -117,14 +116,12 @@ def get_use_glyphs():
                     for subtable in lookup['subtables']:
                         if glyph_name in subtable['match']:
                             use_glyphs.add(subtable['match'])
-                else:
-                    print('Skip lookup type ' + lookup['type'])
     return use_glyphs
 
 def remove_glyph(glyph_name):
-    for codepoint in font['glyph_codes'][glyph_name]:
+    for codepoint in glyph_codes[glyph_name]:
         del font['cmap'][codepoint]
-    del font['glyph_codes'][glyph_name]
+    del glyph_codes[glyph_name]
     try:
         font['glyph_order'].remove(glyph_name)
     except ValueError:
@@ -148,8 +145,6 @@ def remove_glyph(glyph_name):
                         item): return glyph_name not in item['from'] and glyph_name != item['to']
                     subtable['substitutions'][:] = filter(
                         predicate, subtable['substitutions'])
-            else:
-                print('Skip lookup type ' + lookup['type'])
     if 'GPOS' in font:
         for lookup in font['GPOS']['lookups'].values():
             if lookup['type'] == 'gpos_single':
@@ -159,8 +154,6 @@ def remove_glyph(glyph_name):
                 for subtable in lookup['subtables']:
                     subtable['first'].pop(glyph_name, None)
                     subtable['second'].pop(glyph_name, None)
-            else:
-                print('Skip lookup type ' + lookup['type'])
 
 def lookuptable():
     print('Building lookups...')
@@ -343,7 +336,7 @@ def setinfo():
         {'platformID': 3, 'encodingID': 1, 'languageID': 3076, 'nameID': 16, 'nameString': chname},
     ]
 
-if len(sys.argv) > 8:
+if len(sys.argv) > 5:
     print('Loading font...')
     font = json.loads(subprocess.check_output((otfccdump, sys.argv[1])))
     fontcodes = set(map(int, font['cmap']))
@@ -359,7 +352,7 @@ if len(sys.argv) > 8:
         transforme()
         if sys.argv[5] == "multi":
             print('Manage GSUB...')
-            font['glyph_codes'] = build_glyph_codes()
+            glyph_codes = build_glyph_codes()
             print('Removing glyghs...')
             removeglyhps()
             if sys.argv[4].lower() == "true":
@@ -369,8 +362,7 @@ if len(sys.argv) > 8:
             print('Building lookup table...')
             fontcodes = set(map(int, font['cmap']))
             lookuptable()
-            del font['glyph_codes']
-    if sys.argv[6]:
+    if len(sys.argv) > 9 and sys.argv[6]:
         print('Setting font info...')
         setinfo()
     print('Generating font...')
