@@ -1,4 +1,4 @@
-import os, sys, json, subprocess
+import os, sys, json, subprocess, platform
 from collections import defaultdict
 from datetime import date
 from itertools import chain
@@ -6,6 +6,12 @@ from itertools import chain
 pydir = os.path.abspath(os.path.dirname(__file__))
 otfccdump = os.path.join(pydir, 'otfcc/otfccdump')
 otfccbuild = os.path.join(pydir, 'otfcc/otfccbuild')
+if platform.system() == 'Mac':
+    otfccdump += '1'
+    otfccbuild += '1'
+if platform.system() == 'Linux':
+    otfccdump += '2'
+    otfccbuild += '2'
 
 def getmulchar():
     s = str()
@@ -336,16 +342,179 @@ def setinfo():
         {'platformID': 3, 'encodingID': 1, 'languageID': 3076, 'nameID': 16, 'nameString': chname},
     ]
 
+def jptotr():
+    notr = True
+    if 'GSUB' in font:
+        trtab = list()
+        jis78 = list()
+        exptfm = list()
+        aalt=list()
+        torm = set()
+        for lp in font['GSUB']['lookups'].keys():
+            ftag = lp.split('_')[1].lower()
+            ftype = font['GSUB']['lookups'][lp]['type']
+            if ftype == 'gsub_single' or ftype=='gsub_alternate':
+                if ftag == 'trad':
+                    trtab.append(lp)
+                elif ftag == 'jp78':
+                    jis78.append(lp)
+                elif ftag == 'expt':
+                    exptfm.append(lp)
+                elif ftag=='aalt':
+                    aalt.append(lp)
+                elif ftag in {'jp83', 'jp90'}:
+                    torm.add(lp)
+        if len(exptfm) > 0:
+            print('Find ' + str(len(exptfm)) + ' Expert Form(s)!')
+            notr = False
+            gettab(exptfm)
+        if len(jis78) > 0:
+            print('Find ' + str(len(jis78)) + ' JIS78 Form(s)!')
+            notr = False
+            gettab(jis78)
+        if len(aalt) > 0:
+            print('Find '+str(len(aalt))+' Access All Alternate(s)!')
+            notr=False
+            gettabaa(aalt)
+        if len(trtab) > 0:
+            print('Find ' + str(len(trtab)) + ' Traditional Form(s)!')
+            notr = False
+            gettab(trtab, ckkanji=False)
+        for subs in torm:
+            del font['GSUB']['lookups'][subs]
+            f1todel = set()
+            for f1 in font['GSUB']['features'].keys():
+                if subs in font['GSUB']['features'][f1]:
+                    font['GSUB']['features'][f1].remove(subs)
+                if len(font['GSUB']['features'][f1]) == 0:
+                    f1todel.add(f1)
+                    continue
+            for  f1 in f1todel:
+                del font['GSUB']['features'][f1]
+    if notr:
+            print('No form found!')
+
+def gettrch(j, t):
+    for cod in glyph_codes[j]:
+        font['cmap'][str(cod)] = t
+        glyph_codes[t].append(cod)
+    glyph_codes[j].clear()
+
+def gettab(chtat, ckkanji=True):
+    for l1 in chtat:
+        ftype = font['GSUB']['lookups'][l1]['type']
+        for subtable in font['GSUB']['lookups'][l1]['subtables']:
+            for j, t in list(subtable.items()):
+                if ftype == 'gsub_single':
+                    cht = t
+                elif ftype == 'gsub_alternate' and len(t) == 1:
+                    cht = t[0]
+                if ckkanji and j in trex:
+                    continue
+                if not ckkanji or cht not in kanjigl:
+                    gettrch(j, cht)
+
+def gettabaa(aalt):
+    for aa in aalt:
+        ftype=font['GSUB']['lookups'][aa]['type']
+        for subtable in font['GSUB']['lookups'][aa]['subtables']:
+            for j, t in list(subtable.items()):
+                if ftype=='gsub_single':
+                    cht=t
+                elif ftype=='gsub_alternate' and len(t)==1:
+                    cht=t[0]
+                if j in kanjiaa and cht not in kanjigl:
+                    gettrch(j, cht)
+
+def getkanji():
+    s = set()
+    with open(os.path.join(pydir, 'datas/Kanji.txt'),'r',encoding = 'utf-8') as f:
+        for line in f.readlines():
+            chord=ord(line.strip())
+            if chord in fontcodes:
+                s.add(font['cmap'][str(chord)])
+    return s
+
+def getkanjiaa():
+    s=set()
+    with open(os.path.join(pydir, 'datas/Kanjiaa.txt'),'r',encoding = 'utf-8') as f:
+        for line in f.readlines():
+            if not line.startswith('0') and not line.startswith('#'):
+                chord=ord(line[0])
+                if chord in fontcodes:
+                    s.add(font['cmap'][str(chord)])
+    return s
+
+def gettrex():
+    s = set()
+    for ch in '邇珊跚麪麭猷叟鴉芽訝疼豹恢甑芒蜃埴据茨汲均鈷柔穿箭像揃噸頓篇巓扁拏擲斃氓膊膵茣裘褫襪贏躑輓閻霤霽騙魍親柧':
+        chord = ord(ch)
+        if chord in fontcodes:
+            s.add(font['cmap'][str(chord)])
+    return s
+
+def fontaddfont():
+    print('Loading font2...')
+    font2 = json.loads(subprocess.check_output((otfccdump, fin2)))
+    if tabch == "sat":
+        print('Adding font2 codes...')
+        fontcodes2 = set(map(int, font2['cmap']))
+        with open(os.path.join(pydir, 'datas/Variants.txt'),'r',encoding = 'utf-8') as f:
+            for line in f.readlines():
+                vari = line.strip().split('\t')
+                if len(vari) < 2:
+                    continue
+                codein = 0
+                for ch1 in vari:
+                    if ord(ch1) in fontcodes2:
+                        codein = ord(ch1)
+                        break
+                if codein != 0:
+                    for ch1 in vari:
+                        if ord(ch1) not in fontcodes2:
+                            font2['cmap'][str(ord(ch1))] = font2['cmap'][str(codein)]
+                            fontcodes2.add(ord(ch1))
+    print('Adding glyphs...')
+    glyph_codes2 = defaultdict(set)
+    for codepoint, glyph_name in font2['cmap'].items():
+        glyph_codes2[glyph_name].add(codepoint)
+    allcodes1=set(font['cmap'].keys())
+    for glyph_name in set(font2['glyph_order']):
+        if glyph_codes2[glyph_name].issubset(allcodes1):
+            continue
+        glyph_name1=glyph_name
+        j=1
+        while glyph_name1 in font['glyph_order']:
+            glyph_name1=glyph_name+'.'+str(j)
+            j+=1
+        font['glyf'][glyph_name1] = font2['glyf'][glyph_name]
+        font['glyph_order'].append(glyph_name1)
+        for codepoint in glyph_codes2[glyph_name]:
+            if codepoint not in allcodes1:
+                font['cmap'][codepoint]=glyph_name1
+
 if len(sys.argv) > 5:
     print('Loading font...')
-    font = json.loads(subprocess.check_output((otfccdump, sys.argv[1])))
-    fontcodes = set(map(int, font['cmap']))
-    adduni = set()
     tabch = sys.argv[3]
+    fin = sys.argv[1]
+    if tabch in {"sat", "faf"}:
+        fin, fin2 = sys.argv[1].split('|')
+    font = json.loads(subprocess.check_output((otfccdump, fin)))
+    if tabch in {"sat", "faf"}:
+        fontaddfont()
+    adduni = set()
+    fontcodes = set(map(int, font['cmap']))
+    if tabch == 'jt':
+        glyph_codes = build_glyph_codes()
+        kanjigl = getkanji()
+        kanjiaa = getkanjiaa()
+        trex = gettrex()
+        print('Moving glyph codes...')
+        jptotr()
     if tabch == "var" or sys.argv[4].lower() == "true":
         print('Adding variants...')
         addvariants()
-    if tabch != "var":
+    if tabch in {"tc", "tctw", "tchk", "tct"} or (tabch == "jt" and sys.argv[5].lower() == "true"):
         print('Transforming codes...')
         usemulchar = sys.argv[5] == 'single'
         mulchar = getmulchar()
