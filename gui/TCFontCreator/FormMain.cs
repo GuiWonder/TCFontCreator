@@ -16,6 +16,7 @@ namespace TCFontCreator
         private string exepy;
         private string path;
         private string filein;
+        private string filein2;
         private string fileout;
         private string stmode;
         private string[] fontinfo;
@@ -89,16 +90,17 @@ namespace TCFontCreator
                     exeffpy = "C:/Program Files/FontForgeBuilds/bin/ffpython.exe";
                 }
             }
-            if (!System.IO.File.Exists(exepy) && System.IO.File.Exists(exeffpy))
-            {
-                exepy = exeffpy;
-            }
+            //if (!System.IO.File.Exists(exepy) && System.IO.File.Exists(exeffpy))
+            //{
+            //    exepy = exeffpy;
+            //}
         }
 
         private void ButtonStart_Click(object sender, EventArgs e)
         {
             path = AppDomain.CurrentDomain.BaseDirectory;
             filein = textBoxIn.Text.Trim();
+            filein2 = textBoxIn2.Text.Trim();
             fileout = textBoxOut.Text.Trim();
             otcff = comboBoxApp.SelectedIndex == 0;
             ytz = checkBoxYitizi.Checked;
@@ -117,30 +119,6 @@ namespace TCFontCreator
                     multi = "single";
                     break;
             }
-            SetExec();
-            if ((!System.IO.File.Exists(filein)) || string.IsNullOrWhiteSpace(fileout))
-            {
-                MessageBox.Show(this, "文件無效，請重新選擇。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-            if (otcff && !System.IO.File.Exists(exepy))
-            {
-                MessageBox.Show(this, "未能找到Python或FontForge,請在appdata文件中設置python.exe或fontforge.exe的路徑。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-            if (!otcff && !System.IO.File.Exists(exeffpy))
-            {
-                MessageBox.Show(this, "未能找到FontForge,請在appdata文件中設置fontforge.exe的路徑。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-            if (checkBoxInfo.Checked && (string.IsNullOrWhiteSpace(textBoxName.Text) || string.IsNullOrWhiteSpace(textBoxChName.Text)))
-            {
-                MessageBox.Show(this, "您需要輸入字體名稱。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-            fontinfo = checkBoxInfo.Checked
-                ? (new string[] { textBoxName.Text.Trim(), textBoxChName.Text.Trim(), textBoxPSName.Text.Trim(), textBoxVersi.Text.Trim() })
-                : (new string[] { "", "", "", "" });
             switch (comboBoxSys.SelectedIndex)
             {
                 case 0:
@@ -158,10 +136,66 @@ namespace TCFontCreator
                 case 4:
                     stmode = "var";
                     break;
+                case 5:
+                    stmode = "jt";
+                    break;
+                case 6:
+                    stmode = "sat";
+                    break;
+                case 7:
+                    stmode = "faf";
+                    break;
                 default:
                     stmode = "tc";
                     break;
             }
+            SetExec();
+            if ((!System.IO.File.Exists(filein)) || (!System.IO.File.Exists(filein2) && comboBoxSys.SelectedIndex > 5) || string.IsNullOrWhiteSpace(fileout))
+            {
+                MessageBox.Show(this, "文件無效，請重新選擇。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            if (otcff && !System.IO.File.Exists(exepy))
+            {
+                if (System.IO.File.Exists(exeffpy))
+                {
+                    if (MessageBox.Show(this, "未能找到 Python,要使用 FontForge 所附帶的 Python 模塊嗎？可以在 appdata 文件中設置 python.exe 的路徑。", "提示", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
+                    {
+                        exepy = exeffpy;
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    MessageBox.Show(this, "未能找到 Python 或 FontForge,請在 appdata 文件中設置 python.exe 或 fontforge.exe 的路徑。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+            }
+
+            if (!otcff && !System.IO.File.Exists(exeffpy))
+            {
+                MessageBox.Show(this, "未能找到 FontForge,請在 appdata 文件中設置 fontforge.exe 的路徑。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            if (checkBoxInfo.Checked && (string.IsNullOrWhiteSpace(textBoxName.Text) || string.IsNullOrWhiteSpace(textBoxChName.Text)))
+            {
+                MessageBox.Show(this, "您需要輸入字體名稱。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            if (stmode == "jt")
+            {
+                multi = checkBoxJT.Checked.ToString();
+            }
+            if (stmode == "sat" || stmode == "faf")
+            {
+                filein += "|" + filein2;
+            }
+            fontinfo = checkBoxInfo.Checked
+                ? (new string[] { textBoxName.Text.Trim(), textBoxChName.Text.Trim(), textBoxPSName.Text.Trim(), textBoxVersi.Text.Trim() })
+                : (new string[] { "", "", "", "" });
             panelMain.Enabled = false;
             Cursor = Cursors.WaitCursor;
             Text = "正在處理，請耐心等待...";
@@ -212,7 +246,7 @@ namespace TCFontCreator
             {
                 panelMain.Enabled = true;
                 Cursor = Cursors.Default;
-                Text = " 繁體字體製作";
+                Text = " 中文字體簡繁處理工具";
                 if (string.IsNullOrWhiteSpace(err) && System.IO.File.Exists(fileout))
                 {
                     if (outinfo.EndsWith("Finished!"))
@@ -241,7 +275,7 @@ namespace TCFontCreator
 
         private void P_ErrorDataReceived(object sender, System.Diagnostics.DataReceivedEventArgs e)
         {
-            if (!string.IsNullOrWhiteSpace(e.Data) && (e.Data.Contains("Error") || e.Data.Contains("ERROR")))
+            if (!string.IsNullOrWhiteSpace(e.Data) && (e.Data.Contains("Error") || e.Data.Contains("ERROR") || e.Data.Contains("[Errno")))
             {
                 err += e.Data + "\r\n";
             }
@@ -268,9 +302,18 @@ namespace TCFontCreator
 
         private void ComboBoxSys_SelectedIndexChanged(object sender, EventArgs e)
         {
-            checkBoxYitizi.Enabled = !(comboBoxSys.SelectedIndex == 4);
-            comboBoxMulti.Enabled = !(comboBoxSys.SelectedIndex == 4);
-            labelMilti.Enabled = !(comboBoxSys.SelectedIndex == 4);
+            checkBoxYitizi.Enabled = comboBoxSys.SelectedIndex != 4;
+            comboBoxMulti.Enabled = comboBoxSys.SelectedIndex < 4;
+            labelMilti.Enabled = comboBoxSys.SelectedIndex < 4;
+            checkBoxJT.Enabled = comboBoxSys.SelectedIndex == 5;
+            labeli2.Enabled = comboBoxSys.SelectedIndex > 5;
+            textBoxIn2.Enabled = comboBoxSys.SelectedIndex > 5;
+            linkLabelIn2.Enabled = comboBoxSys.SelectedIndex > 5;
+            if (comboBoxSys.SelectedIndex > 4)
+            {
+                comboBoxApp.SelectedIndex = 0;
+            }
+            comboBoxApp.Enabled = comboBoxSys.SelectedIndex < 5;
         }
 
         private void LinkLabelIn_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -278,6 +321,14 @@ namespace TCFontCreator
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 textBoxIn.Text = openFileDialog1.FileName;
+            }
+        }
+
+        private void LinkLabelIn2_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                textBoxIn2.Text = openFileDialog1.FileName;
             }
         }
 
