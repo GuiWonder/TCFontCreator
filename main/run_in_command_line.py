@@ -2,34 +2,64 @@ import subprocess, os
 
 pydir = os.path.abspath(os.path.dirname(__file__))
 fontforge='fontforge'
-pyfile=os.path.join(pydir, 'covff.py')
+python='python'
+python3='python3'
+pyfilef=os.path.join(pydir, 'covff.py')
+pyfileo=os.path.join(pydir, 'covotfcc.py')
 
+print('====中文字体简繁处理工具====\n')
 while True:
     infile=str()
+    infile2=str()
     outfile=str()
     stmode=str()
-    vari=str()
-    multi=str()
+    vari='no'
+    multi='no'
+    jtos=str()
+    appused='otfcc'
     enname=str()
     chname=str()
     psname=str()
     version=str()
+    while stmode not in {'1', '2', '3', '4', '5', '6', '7', '8'}:
+        stmode=input('请选择类型：\n\t1.生成繁体\n\t2.生成繁体TW\n\t3.生成繁体HK\n\t4.生成繁体旧字形\n\t5.补全同义字\n\t6.日本新字形转为传承正字\n\t7.合并简体 GB2312 、繁体 GB2312\n\t8.合并字体 1 、字体 2\n')
     while not os.path.isfile(infile):
         infile=input('请输入字体文件：\n')
         if not os.path.isfile(infile):
             print('文件不存在，请重新选择！\n')
+    if stmode in {'7', '8'}:
+        while not os.path.isfile(infile2):
+            infile2=input('请输入字体文件2：\n')
+            if not os.path.isfile(infile2):
+                print('文件不存在，请重新选择！\n')
+        infile+='|'+infile2
     while not outfile.strip():
         outfile=input('请输入输出文件：\n')
-    while stmode not in {'1', '2', '3', '4', '5'}:
-        stmode=input('请选择类型：\n1.生成繁体\t2.生成繁体TW\t3.生成繁体HK\t4.生成繁体旧字形\t5.补全同义字\n')
-    if stmode=='5':
-        vari='no'
-        multi='no'
-    else:
-        while vari.lower() not in {'y', 'n'}:
-            vari=input('是否同时补全同义字(输入Y/N)：\n')
-        while multi not in {'1', '2', '3'}:
-            multi=input('请选择简繁一对多的处理方式：\n1.不处理一对多\t2.使用单一常用字\t3.使用词汇正确一简对多繁\n')
+    if stmode!='5':
+        while vari not in {'y', 'n'}:
+            vari=input('是否同时补全同义字(输入Y/N)：\n').lower()
+        if vari.lower()=='y':
+            vari='True'
+    if stmode=='6':
+        while jtos not in {'y', 'n'}:
+            jtos=input('是否同转换日本汉字至繁体(输入Y/N)：\n').lower()
+        if jtos=='y':
+            multi='true'
+    if stmode in{'1', '2', '3', '4'}:
+        selmulti=str()
+        while selmulti not in {'1', '2', '3'}:
+            selmulti=input('请选择简繁一对多的处理方式：\n\t1.不处理一对多\n\t2.使用单一常用字\n\t3.使用词汇正确一简对多繁\n')
+        if selmulti=='2':
+            multi='single'
+        elif selmulti=='3':
+            multi='multi'
+    if stmode in{'1', '2', '3', '4', '5'}:
+        selapp=str()
+        while selapp not in {'1', '2'}:
+            selapp=input('请选择字体处理内核：\n\t1.otfcc\n\t2.FontForge\n')
+        if selapp=='2':
+            appused='FontForge'
+    
     enname=input('请输入新字体名称(英文), 如果不想设置可直接输入回车：\n').strip()
     if enname:
         while not chname:
@@ -47,23 +77,25 @@ while True:
         stmode='tchk'
     elif stmode=='4':
         stmode='tct'
-    else:
+    elif stmode=='5':
         stmode='var'
-    if vari.lower()=='y':
-        vari='True'
-    else:
-        vari='no'
-    if multi=='2':
-        multi='single'
-    elif multi=='3':
-        multi='multi'
-    else:
-        multi='no'
+    elif stmode=='6':
+        stmode='jt'
+    elif stmode=='7':
+        stmode='sat'
+    elif stmode=='8':
+        stmode='faf'
     print('正在处理，请耐心等待....\n')
-    subprocess.run((fontforge, '-script', pyfile, infile, outfile, stmode, vari, multi, enname, chname, psname, version))
+    if appused=='FontForge':
+            subprocess.run((fontforge, '-script', pyfilef, infile, outfile, stmode, vari, multi, enname, chname, psname, version))
+    else:
+        try:
+            subprocess.run((python, pyfileo, infile, outfile, stmode, vari, multi, enname, chname, psname, version))
+        except FileNotFoundError:
+            subprocess.run((python3, pyfileo, infile, outfile, stmode, vari, multi, enname, chname, psname, version))
     print('\n处理完毕。\n')
     otherfont=str()
-    while otherfont.lower() not in {'y', 'n'}:
-        otherfont=input('是否继续处理其他字体？输入“Y”(是)或“N”(否)：\n')
-    if otherfont.lower()=='n':
+    while otherfont not in {'y', 'n'}:
+        otherfont=input('是否继续处理其他字体？(输入Y/N)：\n').lower()
+    if otherfont=='n':
         break
