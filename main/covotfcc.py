@@ -455,7 +455,7 @@ def gettrex():
 
 def fontaddfont():
     print('Loading font2...')
-    font2 = json.loads(subprocess.check_output((otfccdump, fin2)))
+    font2 = json.loads(subprocess.check_output((otfccdump, '--no-bom', fin2)).decode("utf-8", "ignore"))
     if tabch == "sat":
         print('Adding font2 codes...')
         fontcodes2 = set(map(int, font2['cmap']))
@@ -499,7 +499,7 @@ if len(sys.argv) > 5:
     fin = sys.argv[1]
     if tabch in {"sat", "faf"}:
         fin, fin2 = sys.argv[1].split('|')
-    font = json.loads(subprocess.check_output((otfccdump, fin)))
+    font = json.loads(subprocess.check_output((otfccdump, '--no-bom', fin)).decode("utf-8", "ignore"))
     if tabch in {"sat", "faf"}:
         fontaddfont()
     adduni = set()
@@ -535,6 +535,6 @@ if len(sys.argv) > 5:
         print('Setting font info...')
         setinfo()
     print('Generating font...')
-    subprocess.run((otfccbuild, '-o', sys.argv[2], '--keep-modified-time'),
+    subprocess.run((otfccbuild, '--keep-modified-time', '-o', sys.argv[2]),
                 input = json.dumps(font), encoding = 'utf-8')
     print('Finished!')
