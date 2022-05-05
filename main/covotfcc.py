@@ -478,20 +478,42 @@ def fontaddfont():
     glyph_codes2 = defaultdict(set)
     for codepoint, glyph_name in font2['cmap'].items():
         glyph_codes2[glyph_name].add(codepoint)
-    allcodes1=set(font['cmap'].keys())
-    for glyph_name in set(font2['glyph_order']):
+    allcodes1 = set(font['cmap'].keys())
+    scl = 1.0
+    if font["head"]["unitsPerEm"] != font2["head"]["unitsPerEm"]:
+        scl = font["head"]["unitsPerEm"] / font2["head"]["unitsPerEm"]
+    for glyph_name in font2['glyph_order']:
         if glyph_codes2[glyph_name].issubset(allcodes1):
             continue
-        glyph_name1=glyph_name
-        j=1
+        glyph_name1 = glyph_name
+        j = 1
         while glyph_name1 in font['glyph_order']:
-            glyph_name1=glyph_name+'.'+str(j)
-            j+=1
+            glyph_name1 = glyph_name+'.'+str(j)
+            j += 1
         font['glyf'][glyph_name1] = font2['glyf'][glyph_name]
+        if scl != 1.0:
+            sclglyph(font['glyf'][glyph_name1], scl)
         font['glyph_order'].append(glyph_name1)
         for codepoint in glyph_codes2[glyph_name]:
             if codepoint not in allcodes1:
-                font['cmap'][codepoint]=glyph_name1
+                font['cmap'][codepoint] = glyph_name1
+    del font2
+    del glyph_codes2
+
+def sclglyph(glyph, scl):
+    glyph['advanceWidth'] = round(glyph['advanceWidth'] * scl)
+    if 'advanceHeight' in glyph:
+        glyph['advanceHeight'] = round(glyph['advanceHeight'] * scl)
+        glyph['verticalOrigin'] = round(glyph['verticalOrigin'] * scl)
+    if 'contours' in glyph:
+        for contour in glyph['contours']:
+            for point in contour:
+                point['x'] = round(point['x'] * scl);
+                point['y'] = round(point['y'] * scl);
+    if 'references' in glyph:
+        for reference in glyph['references']:
+            reference['x'] = round(scl * reference['x'])
+            reference['y'] = round(scl * reference['y'])
 
 if len(sys.argv) > 5:
     print('Loading font...')
@@ -535,6 +557,6 @@ if len(sys.argv) > 5:
         print('Setting font info...')
         setinfo()
     print('Generating font...')
-    subprocess.run((otfccbuild, '--keep-modified-time', '-o', sys.argv[2]),
+    subprocess.run((otfccbuild, '--keep-modified-time', '--keep-average-char-width', '-O3', '-q', '-o', sys.argv[2]),
                 input = json.dumps(font), encoding = 'utf-8')
     print('Finished!')
