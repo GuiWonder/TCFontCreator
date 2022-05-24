@@ -7,6 +7,15 @@ python3='python3'
 pyfilef=os.path.join(pydir, 'covff.py')
 pyfileo=os.path.join(pydir, 'covotfcc.py')
 
+def ckfile(f):
+    f=f.strip()
+    if not os.path.isfile(f):
+        if os.path.isfile(f.strip('"')):
+            return f.strip('"')
+        elif os.path.isfile(f.strip("'")):
+            return f.strip("'")
+    return f
+
 print('====中文字体简繁处理工具====\n')
 while True:
     infile=str()
@@ -22,14 +31,16 @@ while True:
     psname=str()
     version=str()
     while stmode not in {'1', '2', '3', '4', '5', '6', '7', '8'}:
-        stmode=input('请选择类型：\n\t1.生成繁体\n\t2.生成繁体TW\n\t3.生成繁体HK\n\t4.生成繁体旧字形\n\t5.补全同义字\n\t6.日本新字形转为传承正字\n\t7.合并简体 GB2312 、繁体 GB2312\n\t8.合并字体 1 、字体 2\n')
+        stmode=input('请选择类型：\n\t1.生成繁体字体\n\t2.生成繁体字体TW\n\t3.生成繁体字体HK\n\t4.生成繁体字体旧字形\n\t5.补全同义字\n\t6.合并简体 GB2312、繁体 GB2312\n\t7.合并字体 1、字体 2\n\t8.日本新字形转为传承正字\n')
     while not os.path.isfile(infile):
         infile=input('请输入字体文件：\n')
+        infile=ckfile(infile)
         if not os.path.isfile(infile):
             print('文件不存在，请重新选择！\n')
-    if stmode in {'7', '8'}:
+    if stmode in {'6', '7'}:
         while not os.path.isfile(infile2):
             infile2=input('请输入字体文件2：\n')
+            infile2=ckfile(infile2)
             if not os.path.isfile(infile2):
                 print('文件不存在，请重新选择！\n')
         infile+='|'+infile2
@@ -40,12 +51,12 @@ while True:
             vari=input('是否同时补全同义字(输入Y/N)：\n').lower()
         if vari.lower()=='y':
             vari='True'
-    if stmode=='6':
+    if stmode=='8':
         while jtos not in {'y', 'n'}:
             jtos=input('是否同转换日本汉字至繁体(输入Y/N)：\n').lower()
         if jtos=='y':
             multi='true'
-    if stmode in{'1', '2', '3', '4'}:
+    if stmode in {'1', '2', '3', '4'}:
         selmulti=str()
         while selmulti not in {'1', '2', '3'}:
             selmulti=input('请选择简繁一对多的处理方式：\n\t1.不处理一对多\n\t2.使用单一常用字\n\t3.使用词汇正确一简对多繁\n')
@@ -53,7 +64,7 @@ while True:
             multi='single'
         elif selmulti=='3':
             multi='multi'
-    if stmode in{'1', '2', '3', '4', '5'}:
+    if stmode in {'1', '2', '3', '4', '5', '6', '7'}:
         selapp=str()
         while selapp not in {'1', '2'}:
             selapp=input('请选择字体处理内核：\n\t1.otfcc\n\t2.FontForge\n')
@@ -80,11 +91,11 @@ while True:
     elif stmode=='5':
         stmode='var'
     elif stmode=='6':
-        stmode='jt'
-    elif stmode=='7':
         stmode='sat'
-    elif stmode=='8':
+    elif stmode=='7':
         stmode='faf'
+    elif stmode=='8':
+        stmode='jt'
     print('正在处理，请耐心等待....\n')
     if appused=='FontForge':
             subprocess.run((fontforge, '-script', pyfilef, infile, outfile, stmode, vari, multi, enname, chname, psname, version))
