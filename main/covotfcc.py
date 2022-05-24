@@ -342,6 +342,10 @@ def setinfo():
         {'platformID': 3, 'encodingID': 1, 'languageID': 3076, 'nameID': 2, 'nameString': sbfamily},
         {'platformID': 3, 'encodingID': 1, 'languageID': 3076, 'nameID': 4, 'nameString': chname + ' ' + sbfamily},
         {'platformID': 3, 'encodingID': 1, 'languageID': 3076, 'nameID': 16, 'nameString': chname},
+        {'platformID': 3, 'encodingID': 1, 'languageID': 5124, 'nameID': 1, 'nameString': chname},
+        {'platformID': 3, 'encodingID': 1, 'languageID': 5124, 'nameID': 2, 'nameString': sbfamily},
+        {'platformID': 3, 'encodingID': 1, 'languageID': 5124, 'nameID': 4, 'nameString': chname + ' ' + sbfamily},
+        {'platformID': 3, 'encodingID': 1, 'languageID': 5124, 'nameID': 16, 'nameString': chname},
     ]
 
 def jptotr():
@@ -350,7 +354,7 @@ def jptotr():
         trtab = list()
         jis78 = list()
         exptfm = list()
-        aalt=list()
+        aalt = list()
         torm = set()
         for lp in font['GSUB']['lookups'].keys():
             ftag = lp.split('_')[1].lower()
