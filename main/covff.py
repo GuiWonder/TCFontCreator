@@ -24,13 +24,13 @@ def addvariants():
             codein = 0
             for ch1 in vari:
                 chcode = ord(ch1)
-                if chcode in amb or chcode in alladdcds:
+                if chcode in code_glyph:
                     codein = chcode
                     break
             if codein != 0:
                 for ch1 in vari:
                     chcode = ord(ch1)
-                    if chcode not in amb and chcode not in alladdcds:
+                    if chcode not in code_glyph:
                         addunicodest(codein, chcode)
 
 def transforme():
@@ -42,47 +42,40 @@ def transforme():
             if s and t and s != t and (usemulchar or not s in mulchar):
                 addunicodest(ord(t), ord(s))
 
+
 def addunicodest(tcunic, scunic):
-    if tcunic not in amb and tcunic not in alladdcds:
+    if tcunic not in code_glyph:
         return
-    glytc = amb[amb.findEncodingSlot(tcunic)]
-    if scunic in amb or scunic in alladdcds:
-        glysc = amb[amb.findEncodingSlot(scunic)]
-        if glytc == glysc:
+    glytc = font[font.findEncodingSlot(tcunic)]
+    if scunic in code_glyph:
+        glysc = font[font.findEncodingSlot(scunic)]
+        if glytc.glyphname == glysc.glyphname:
             return
+        glyph_codes[glysc.glyphname].remove(scunic)
+        l1=glyph_codes[glysc.glyphname]
         if scunic == glysc.unicode:
             if glysc.altuni != None:
-                l1 = list()
-                l2 = list()
-                for sccds in glysc.altuni:
-                    l1.append(sccds[0])
                 glysc.unicode = l1[0]
-                for u2 in l1:
-                    if u2 != glysc.unicode:
-                        l2.append((u2, ))
-                if len(l2) > 0:
-                    glysc.altuni = l2
+                if len(l1)>1:
+                    glysc.altuni=l1[1:]
                 else:
                     glysc.altuni = None
             else:
-                amb.removeGlyph(scunic)
+                font.removeGlyph(scunic)
         else:
-            al1 = list()
-            for alt in glysc.altuni:
-                if alt[0] != scunic:
-                    al1.append((alt[0], ))
-            if len(al1) > 0:
-                glysc.altuni = al1
+            l1.remove(glysc.unicode)
+            if len(l1) > 0:
+                glysc.altuni = l1
             else:
                 glysc.altuni = None
-    ss = {scunic}
-    ll = list()
+    ltcuni = list()
     if glytc.altuni != None:
         for uni in glytc.altuni:
-            ss.add(uni[0])
-    for s1 in ss:
-        ll.append((s1, ))
-    glytc.altuni = ll
+            ltcuni.append(uni[0])
+    ltcuni.append(scunic)
+    glytc.altuni=ltcuni
+    glyph_codes[glytc.glyphname].append(scunic)
+    code_glyph[scunic]=glytc.glyphname
     alladdcds.add(scunic)
 
 def removeglyhps():
@@ -100,39 +93,34 @@ def removeglyhps():
         range(0xFF01, 0xFF5E + 1),
         range(0xFF5F, 0xFF65 + 1),
     ))
-    with open(os.path.join(pydir, 'datas/Hans.txt'), 'r',encoding = 'utf-8') as f:
+    with open(os.path.join(pydir, 'datas/Hans.txt'), 'r', encoding = 'utf-8') as f:
         for line in f.readlines():
             if line.strip() and not line.strip().startswith('#'):
                 alcodes.add(ord(line.strip()))
     alcodes.update(alladdcds)
     useg=set()
-    for gls in amb.glyphs():
-        rmit = True
-        if gls.glyphname.startswith('.') or gls.unicode in alcodes:
-            rmit = False
-        elif gls.altuni != None:
-            for uni in gls.altuni:
-                if uni[0] in alcodes:
-                    rmit = False
-                    break
-        if not rmit:
+    for gls in font.glyphs():
+        if gls.glyphname.startswith('.') or gls.glyphname == 'nonmarkingreturn':
             useg.add(gls.glyphname)
-    reget=set()
+        elif len(set(glyph_codes[gls.glyphname]).intersection(alcodes))>0:
+            useg.add(gls.glyphname)
+    reget = set()
     for gly in useg:
-        tg=amb[gly].getPosSub('*')
-        if len(tg)>0:
+        tg = font[gly].getPosSub('*')
+        if len(tg) > 0:
             for t1 in tg:
-                if t1[1]=='Substitution' and t1[2] not in useg:
+                if t1[1] == 'Substitution' and t1[2] not in useg:
                     reget.add(t1[2])
     useg.update(reget)
-    for gls in amb.glyphs():
+    for gls in font.glyphs():
         if gls.glyphname not in useg:
-            amb.removeGlyph(gls)
+            font.removeGlyph(gls)
+    getallcodesname(font, code_glyph, glyph_codes)
 
 def ForCharslookups():
-    amb.addLookup('stchar', 'gsub_single', None, (("liga",(("hani",("dflt")),)),))
-    amb.addLookupSubtable('stchar', 'stchar1')
-    with open(os.path.join(pydir, f'datas/Chars_{tabch}.txt'), 'r',encoding = 'utf-8') as f:
+    font.addLookup('stchar', 'gsub_single', None, (("liga",(("hani",("dflt")),)),))
+    font.addLookupSubtable('stchar', 'stchar1')
+    with open(os.path.join(pydir, f'datas/Chars_{tabch}.txt'), 'r', encoding = 'utf-8') as f:
         for line in f.readlines():
             s, t = line.strip().split('\t')
             s = s.strip()
@@ -148,11 +136,11 @@ def ForCharslookups():
                 addlookupschar(ord(t), ord(s))
 
 def addlookupschar(tcunic, scunic):
-    if (tcunic in amb or tcunic in alladdcds) and (scunic in amb or scunic in alladdcds):
-        gtc = amb[amb.findEncodingSlot(tcunic)]
-        gsc = amb[amb.findEncodingSlot(scunic)]
-        if gtc.glyphname != gsc.glyphname:
-            gsc.addPosSub('stchar1', gtc.glyphname)
+    if tcunic in code_glyph and scunic in code_glyph:
+        gntc = code_glyph[tcunic]
+        gnsc = code_glyph[scunic]
+        if gntc != gnsc:
+            font[gnsc].addPosSub('stchar1', gntc)
 
 def ForWordslookups():
     stword = list()
@@ -160,7 +148,7 @@ def ForWordslookups():
         for line in f.readlines():
             isavail = True
             for ch1 in line.strip().replace('\t', '').replace(' ', ''):
-                if ord(ch1) not in amb and ord(ch1) not in alladdcds:
+                if ord(ch1) not in code_glyph:
                     isavail = False
                     break
             if isavail:
@@ -169,15 +157,15 @@ def ForWordslookups():
                     stword.append((s.strip(), t.strip()))
     if len(stword) < 1:
         return
-    sumf = sum(1 for _ in amb.glyphs())
+    sumf = sum(1 for _ in font.glyphs())
     if len(stword) + sumf > 65535:
         raise RuntimeError('Not enough glyph space! You need ' + str(len(stword) + sumf - 65535) + ' more glyph space!')
     stword.sort(key=lambda x:len(x[0]), reverse = True)
-    amb.addLookup('stmult', 'gsub_multiple', None, (("liga",(("hani",("dflt")),)),), 'stchar')
-    amb.addLookup('stliga', 'gsub_ligature', None, (("liga",(("hani",("dflt")),)),))
+    font.addLookup('stmult', 'gsub_multiple', None, (("liga",(("hani",("dflt")),)),), 'stchar')
+    font.addLookup('stliga', 'gsub_ligature', None, (("liga",(("hani",("dflt")),)),))
     i, j, tlen, wlen = 0, 0, 0, len(stword[0][0])
-    amb.addLookupSubtable('stmult', 'stmult0')
-    amb.addLookupSubtable('stliga', 'stliga0')
+    font.addLookupSubtable('stmult', 'stmult0')
+    font.addLookupSubtable('stliga', 'stliga0')
     for wd in stword:
         tlen += len(wd[0] + wd[1])
         wlen2 = len(stword[i][0])
@@ -185,8 +173,8 @@ def ForWordslookups():
             tlen = 0
             wlen = wlen2
             j += 1
-            amb.addLookupSubtable('stmult', 'stmult' + str(j), 'stmult' + str(j - 1))
-            amb.addLookupSubtable('stliga', 'stliga' + str(j), 'stliga' + str(j - 1))
+            font.addLookupSubtable('stmult', 'stmult' + str(j), 'stmult' + str(j - 1))
+            font.addLookupSubtable('stliga', 'stliga' + str(j), 'stliga' + str(j - 1))
         i += 1
         addlookupsword(wd[1], wd[0], str(j), str(i))
 
@@ -196,19 +184,19 @@ def addlookupsword(tcword, scword, j, i):
     wdout = list()
     for s1 in scword:
         try:
-            glys = amb[amb.findEncodingSlot(ord(s1))]
+            glys = font[code_glyph[ord(s1)]]
         except TypeError:
             print('Skip ' + s1)
             return
         wdin.append(glys.glyphname)
     for t1 in tcword:
         try:
-            glyt = amb[amb.findEncodingSlot(ord(t1))]
+            glyt = font[code_glyph[ord(t1)]]
         except TypeError:
             print('Skip ' + t1)
             return
         wdout.append(glyt.glyphname)
-    newg = amb.createChar(-1, newgname)
+    newg = font.createChar(-1, newgname)
     newg.width = 1000
     newg.vwidth = 800
     newg.addPosSub('stliga' + j, tuple(wdin))
@@ -221,19 +209,19 @@ def setinfo():
     version = sys.argv[9]
     sbfamily = 'Regular'
     versionstr = f'Version 1.00;{dateinfo}'
-    for n1 in amb.sfnt_names:
+    for n1 in font.sfnt_names:
         if n1[0] == 'English (US)' and n1[1] == 'SubFamily':
             sbfamily = n1[2]
         if n1[0] == 'English (US)' and n1[1] == 'Version':
             versionstr = n1[2]
     if version:
         try:
-            amb.sfntRevision = float(version)
+            font.sfntRevision = float(version)
         except ValueError:
-            amb.sfntRevision = None
+            font.sfntRevision = None
         versionstr = f'Version {version};{dateinfo}'
     else:
-        version = '{:.2f}'.format(amb.sfntRevision)
+        version = '{:.2f}'.format(font.sfntRevision)
     if not psname.lower().endswith(sbfamily.lower()):
         psname += '-' + sbfamily
     sfntnames = (
@@ -255,20 +243,113 @@ def setinfo():
         ('Chinese (Hong Kong)', 'Family', chname), 
         ('Chinese (Hong Kong)', 'SubFamily', sbfamily), 
         ('Chinese (Hong Kong)', 'Fullname', chname + ' ' + sbfamily), 
-        ('Chinese (Hong Kong)', 'Preferred Family', chname)
+        ('Chinese (Hong Kong)', 'Preferred Family', chname), 
+        ('Chinese (Macau)', 'Family', chname), 
+        ('Chinese (Macau)', 'SubFamily', sbfamily), 
+        ('Chinese (Macau)', 'Fullname', chname + ' ' + sbfamily), 
+        ('Chinese (Macau)', 'Preferred Family', chname)
     )
-    amb.sfnt_names = sfntnames
+    font.sfnt_names = sfntnames
+
+def getallcodesname(font, code_glyph, glyph_codes):
+    code_glyph.clear()
+    glyph_codes.clear()
+    for gls in font.glyphs():
+        glyph_codes[gls.glyphname]=list()
+        if gls.unicode < 0:
+            continue
+        code_glyph[gls.unicode]=gls.glyphname
+        glyph_codes[gls.glyphname].append(gls.unicode)
+        if gls.altuni != None:
+            for uni in gls.altuni:
+                code_glyph[uni[0]]=gls.glyphname
+                glyph_codes[gls.glyphname].append(uni[0])
+
+def fontaddfont():
+    print('Loading font2...')
+    font2 = fontforge.open(fin2)
+    font2.em = font.em
+    print('Getting glyph2 codes')
+    code_glyph2 = dict()
+    glyph_codes2=dict()
+    getallcodesname(font2, code_glyph2, glyph_codes2)
+    if tabch == "sat":
+        font2.reencode("unicodefull")
+        print('Adding font2 codes...')
+        allcodes2 = code_glyph2.keys()
+        with open(os.path.join(pydir, 'datas/Variants.txt'),'r',encoding = 'utf-8') as f:
+            for line in f.readlines():
+                vari = line.strip().split('\t')
+                if len(vari) < 2:
+                    continue
+                codein = 0
+                for ch1 in vari:
+                    if ord(ch1) in code_glyph2.keys():
+                        codein = ord(ch1)
+                        break
+                if codein != 0:
+                    for ch1 in vari:
+                        if ord(ch1) not in code_glyph2.keys():
+                            gname=code_glyph2[codein]
+                            glyph_codes2[gname].append(ord(ch1))
+                            code_glyph2[ord(ch1)]=gname
+        print('Adding glyphs...')
+        print('This will take some time...')
+        allcodes=code_glyph.keys()
+        for n2 in glyph_codes2.keys():
+            scds=set(glyph_codes2[n2])
+            if not scds.issubset(allcodes):
+                sdcs = scds.difference(allcodes)
+                gcs = list(sdcs)
+                font2.selection.select(n2)
+                font2.copy()
+                font.selection.select(gcs[0])
+                font.paste()
+                font[gcs[0]].unicode = gcs[0]
+                if len(gcs)>1:
+                    font[gcs[0]].altuni = gcs[1:]
+    else:
+        print('Adding glyphs...')
+        code_codes2 = {}
+        for n2 in glyph_codes2.keys():
+            lc = list()
+            for ac1 in glyph_codes2[n2]:
+                if ac1 not in code_glyph.keys():
+                    lc.append(ac1)
+            if len(lc) > 0:
+                code_codes2[lc[0]] = lc[1:]
+        font2.selection.select(*code_codes2.keys())
+        font2.copy()
+        font.selection.select(*code_codes2.keys())
+        font.paste()
+        print('Adding extra codings...')
+        for cd1 in code_codes2.keys():
+            if len(code_codes2[cd1]) > 0:
+                font[cd1].altuni = code_codes2[cd1]
+        del code_codes2
+    del glyph_codes2
+    del code_glyph2
+    font2.close()
+    getallcodesname(font, code_glyph, glyph_codes)
 
 if len(sys.argv) > 5:
     print('Loading font...')
-    amb = fontforge.open(sys.argv[1])
-    amb.reencode("unicodefull")
-    alladdcds = set()
     tabch = sys.argv[3]
+    fin = sys.argv[1]
+    if tabch in {"sat", "faf"}:
+        fin, fin2 = sys.argv[1].split('|')
+    font = fontforge.open(fin)
+    font.reencode("unicodefull")
+    alladdcds = set()
+    code_glyph = dict()
+    glyph_codes=dict()
+    getallcodesname(font, code_glyph, glyph_codes)
+    if tabch in {"sat", "faf"}:
+        fontaddfont()
     if tabch == "var" or sys.argv[4].lower() == "true":
         print('Adding variants...')
         addvariants()
-    if tabch != "var":
+    if tabch in {"tc", "tctw", "tchk", "tct"}:
         print('Transforming codes...')
         usemulchar = sys.argv[5] == 'single'
         mulchar = getmulchar()
@@ -287,6 +368,8 @@ if len(sys.argv) > 5:
     if len(sys.argv) > 9 and sys.argv[6]:
         print('Setting font info...')
         setinfo()
+    del code_glyph
+    del glyph_codes
     print('Generating font...')
-    amb.generate(sys.argv[2])
+    font.generate(sys.argv[2])
     print('Finished!')
