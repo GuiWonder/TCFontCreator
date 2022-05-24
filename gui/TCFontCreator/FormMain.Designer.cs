@@ -66,9 +66,9 @@ namespace TCFontCreator
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(18, 14);
+            this.label7.Location = new System.Drawing.Point(18, 13);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(55, 13);
+            this.label7.Size = new System.Drawing.Size(53, 12);
             this.label7.TabIndex = 5;
             this.label7.Text = "選擇目標";
             // 
@@ -78,25 +78,25 @@ namespace TCFontCreator
             this.comboBoxSys.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBoxSys.FormattingEnabled = true;
             this.comboBoxSys.Items.AddRange(new object[] {
-            "生成繁體",
-            "生成繁體TW",
-            "生成繁體HK",
-            "生成繁體舊字形",
+            "生成繁體字體",
+            "生成繁體字體TW",
+            "生成繁體字體HK",
+            "生成繁體字體舊字形",
             "補全同義字",
-            "日本新字轉爲傳承正字(僅日本字體)",
-            "合併簡體 GB2312 、繁體 GB2312",
-            "合併字體 1 、字體 2"});
-            this.comboBoxSys.Location = new System.Drawing.Point(77, 10);
+            "合併簡體 GB2312、繁體 GB2312",
+            "合併字體 1、字體 2",
+            "日本新字轉爲傳承正字(僅日本字體)"});
+            this.comboBoxSys.Location = new System.Drawing.Point(77, 9);
             this.comboBoxSys.Name = "comboBoxSys";
-            this.comboBoxSys.Size = new System.Drawing.Size(292, 21);
+            this.comboBoxSys.Size = new System.Drawing.Size(292, 20);
             this.comboBoxSys.TabIndex = 0;
             this.comboBoxSys.SelectedIndexChanged += new System.EventHandler(this.ComboBoxSys_SelectedIndexChanged);
             // 
             // buttonStart
             // 
-            this.buttonStart.Location = new System.Drawing.Point(392, 8);
+            this.buttonStart.Location = new System.Drawing.Point(392, 7);
             this.buttonStart.Name = "buttonStart";
-            this.buttonStart.Size = new System.Drawing.Size(75, 25);
+            this.buttonStart.Size = new System.Drawing.Size(75, 23);
             this.buttonStart.TabIndex = 11;
             this.buttonStart.Text = "開始";
             this.buttonStart.UseVisualStyleBackColor = true;
@@ -105,27 +105,27 @@ namespace TCFontCreator
             // labeli1
             // 
             this.labeli1.AutoSize = true;
-            this.labeli1.Location = new System.Drawing.Point(6, 50);
+            this.labeli1.Location = new System.Drawing.Point(6, 46);
             this.labeli1.Name = "labeli1";
-            this.labeli1.Size = new System.Drawing.Size(68, 13);
+            this.labeli1.Size = new System.Drawing.Size(71, 12);
             this.labeli1.TabIndex = 1;
             this.labeli1.Text = "* 輸入字體1";
             // 
             // labelo
             // 
             this.labelo.AutoSize = true;
-            this.labelo.Location = new System.Drawing.Point(11, 102);
+            this.labelo.Location = new System.Drawing.Point(11, 94);
             this.labelo.Name = "labelo";
-            this.labelo.Size = new System.Drawing.Size(62, 13);
+            this.labelo.Size = new System.Drawing.Size(65, 12);
             this.labelo.TabIndex = 2;
             this.labelo.Text = "* 輸出字體";
             // 
             // textBoxIn
             // 
             this.textBoxIn.AllowDrop = true;
-            this.textBoxIn.Location = new System.Drawing.Point(77, 47);
+            this.textBoxIn.Location = new System.Drawing.Point(77, 43);
             this.textBoxIn.Name = "textBoxIn";
-            this.textBoxIn.Size = new System.Drawing.Size(353, 20);
+            this.textBoxIn.Size = new System.Drawing.Size(353, 21);
             this.textBoxIn.TabIndex = 1;
             this.textBoxIn.DragDrop += new System.Windows.Forms.DragEventHandler(this.TextBox_DragDrop);
             this.textBoxIn.DragEnter += new System.Windows.Forms.DragEventHandler(this.TextBox_DragEnter);
@@ -133,9 +133,9 @@ namespace TCFontCreator
             // textBoxOut
             // 
             this.textBoxOut.AllowDrop = true;
-            this.textBoxOut.Location = new System.Drawing.Point(77, 99);
+            this.textBoxOut.Location = new System.Drawing.Point(77, 91);
             this.textBoxOut.Name = "textBoxOut";
-            this.textBoxOut.Size = new System.Drawing.Size(353, 20);
+            this.textBoxOut.Size = new System.Drawing.Size(353, 21);
             this.textBoxOut.TabIndex = 3;
             this.textBoxOut.DragDrop += new System.Windows.Forms.DragEventHandler(this.TextBox_DragDrop);
             this.textBoxOut.DragEnter += new System.Windows.Forms.DragEventHandler(this.TextBox_DragEnter);
@@ -151,9 +151,9 @@ namespace TCFontCreator
             // checkBoxInfo
             // 
             this.checkBoxInfo.AutoSize = true;
-            this.checkBoxInfo.Location = new System.Drawing.Point(22, 224);
+            this.checkBoxInfo.Location = new System.Drawing.Point(22, 207);
             this.checkBoxInfo.Name = "checkBoxInfo";
-            this.checkBoxInfo.Size = new System.Drawing.Size(89, 17);
+            this.checkBoxInfo.Size = new System.Drawing.Size(90, 16);
             this.checkBoxInfo.TabIndex = 5;
             this.checkBoxInfo.Text = "新字體信息:";
             this.checkBoxInfo.UseVisualStyleBackColor = true;
@@ -162,9 +162,9 @@ namespace TCFontCreator
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(11, 64);
+            this.label5.Location = new System.Drawing.Point(4, 59);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(79, 13);
+            this.label5.Size = new System.Drawing.Size(89, 12);
             this.label5.TabIndex = 1;
             this.label5.Text = "PostScript名稱";
             // 
@@ -172,49 +172,49 @@ namespace TCFontCreator
             // 
             this.textBoxName.Location = new System.Drawing.Point(99, 2);
             this.textBoxName.Name = "textBoxName";
-            this.textBoxName.Size = new System.Drawing.Size(133, 20);
+            this.textBoxName.Size = new System.Drawing.Size(133, 21);
             this.textBoxName.TabIndex = 6;
             this.textBoxName.Text = "My New Font";
             // 
             // textBoxVersi
             // 
-            this.textBoxVersi.Location = new System.Drawing.Point(99, 90);
+            this.textBoxVersi.Location = new System.Drawing.Point(99, 83);
             this.textBoxVersi.Name = "textBoxVersi";
-            this.textBoxVersi.Size = new System.Drawing.Size(133, 20);
+            this.textBoxVersi.Size = new System.Drawing.Size(133, 21);
             this.textBoxVersi.TabIndex = 9;
             this.textBoxVersi.Text = "1.00";
             // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(28, 35);
+            this.label4.Location = new System.Drawing.Point(28, 32);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(62, 13);
+            this.label4.Size = new System.Drawing.Size(65, 12);
             this.label4.TabIndex = 1;
             this.label4.Text = "* 中文名稱";
             // 
             // textBoxChName
             // 
-            this.textBoxChName.Location = new System.Drawing.Point(99, 31);
+            this.textBoxChName.Location = new System.Drawing.Point(99, 29);
             this.textBoxChName.Name = "textBoxChName";
-            this.textBoxChName.Size = new System.Drawing.Size(133, 20);
+            this.textBoxChName.Size = new System.Drawing.Size(133, 21);
             this.textBoxChName.TabIndex = 7;
             this.textBoxChName.Text = "我的新字體";
             // 
             // textBoxPSName
             // 
-            this.textBoxPSName.Location = new System.Drawing.Point(99, 61);
+            this.textBoxPSName.Location = new System.Drawing.Point(99, 56);
             this.textBoxPSName.Name = "textBoxPSName";
-            this.textBoxPSName.Size = new System.Drawing.Size(133, 20);
+            this.textBoxPSName.Size = new System.Drawing.Size(133, 21);
             this.textBoxPSName.TabIndex = 8;
             this.textBoxPSName.Text = "MyNewFont";
             // 
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(59, 93);
+            this.label6.Location = new System.Drawing.Point(64, 86);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(31, 13);
+            this.label6.Size = new System.Drawing.Size(29, 12);
             this.label6.TabIndex = 1;
             this.label6.Text = "版本";
             // 
@@ -223,16 +223,16 @@ namespace TCFontCreator
             this.label3.AutoSize = true;
             this.label3.Location = new System.Drawing.Point(28, 5);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(62, 13);
+            this.label3.Size = new System.Drawing.Size(65, 12);
             this.label3.TabIndex = 1;
             this.label3.Text = "* 字體名稱";
             // 
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(18, 135);
+            this.label8.Location = new System.Drawing.Point(18, 125);
             this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(55, 13);
+            this.label8.Size = new System.Drawing.Size(53, 12);
             this.label8.TabIndex = 14;
             this.label8.Text = "使用內核";
             // 
@@ -243,9 +243,9 @@ namespace TCFontCreator
             this.comboBoxApp.Items.AddRange(new object[] {
             "otfcc",
             "FontForge"});
-            this.comboBoxApp.Location = new System.Drawing.Point(77, 132);
+            this.comboBoxApp.Location = new System.Drawing.Point(77, 122);
             this.comboBoxApp.Name = "comboBoxApp";
-            this.comboBoxApp.Size = new System.Drawing.Size(156, 21);
+            this.comboBoxApp.Size = new System.Drawing.Size(156, 20);
             this.comboBoxApp.TabIndex = 13;
             // 
             // checkBoxYitizi
@@ -253,9 +253,9 @@ namespace TCFontCreator
             this.checkBoxYitizi.AutoSize = true;
             this.checkBoxYitizi.Checked = true;
             this.checkBoxYitizi.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxYitizi.Location = new System.Drawing.Point(22, 167);
+            this.checkBoxYitizi.Location = new System.Drawing.Point(22, 154);
             this.checkBoxYitizi.Name = "checkBoxYitizi";
-            this.checkBoxYitizi.Size = new System.Drawing.Size(110, 17);
+            this.checkBoxYitizi.Size = new System.Drawing.Size(108, 16);
             this.checkBoxYitizi.TabIndex = 10;
             this.checkBoxYitizi.Text = "同時補全同義字";
             this.checkBoxYitizi.UseVisualStyleBackColor = true;
@@ -270,9 +270,9 @@ namespace TCFontCreator
             this.panel1.Controls.Add(this.textBoxPSName);
             this.panel1.Controls.Add(this.label4);
             this.panel1.Controls.Add(this.textBoxChName);
-            this.panel1.Location = new System.Drawing.Point(113, 222);
+            this.panel1.Location = new System.Drawing.Point(113, 205);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(246, 114);
+            this.panel1.Size = new System.Drawing.Size(246, 105);
             this.panel1.TabIndex = 17;
             // 
             // panelMain
@@ -297,9 +297,9 @@ namespace TCFontCreator
             this.panelMain.Controls.Add(this.textBoxIn2);
             this.panelMain.Controls.Add(this.textBoxIn);
             this.panelMain.Controls.Add(this.labelo);
-            this.panelMain.Location = new System.Drawing.Point(13, 14);
+            this.panelMain.Location = new System.Drawing.Point(13, 13);
             this.panelMain.Name = "panelMain";
-            this.panelMain.Size = new System.Drawing.Size(478, 337);
+            this.panelMain.Size = new System.Drawing.Size(478, 311);
             this.panelMain.TabIndex = 18;
             // 
             // comboBoxMulti
@@ -310,26 +310,26 @@ namespace TCFontCreator
             "不處理一對多",
             "使用單一常用字",
             "使用詞彙正確一簡對多繁"});
-            this.comboBoxMulti.Location = new System.Drawing.Point(141, 190);
+            this.comboBoxMulti.Location = new System.Drawing.Point(141, 175);
             this.comboBoxMulti.Name = "comboBoxMulti";
-            this.comboBoxMulti.Size = new System.Drawing.Size(202, 21);
+            this.comboBoxMulti.Size = new System.Drawing.Size(202, 20);
             this.comboBoxMulti.TabIndex = 20;
             // 
             // labelMilti
             // 
             this.labelMilti.AutoSize = true;
-            this.labelMilti.Location = new System.Drawing.Point(20, 194);
+            this.labelMilti.Location = new System.Drawing.Point(20, 179);
             this.labelMilti.Name = "labelMilti";
-            this.labelMilti.Size = new System.Drawing.Size(115, 13);
+            this.labelMilti.Size = new System.Drawing.Size(113, 12);
             this.labelMilti.TabIndex = 19;
             this.labelMilti.Text = "對簡繁一對多的處理";
             // 
             // linkLabelOut
             // 
             this.linkLabelOut.AutoSize = true;
-            this.linkLabelOut.Location = new System.Drawing.Point(436, 102);
+            this.linkLabelOut.Location = new System.Drawing.Point(436, 94);
             this.linkLabelOut.Name = "linkLabelOut";
-            this.linkLabelOut.Size = new System.Drawing.Size(31, 13);
+            this.linkLabelOut.Size = new System.Drawing.Size(29, 12);
             this.linkLabelOut.TabIndex = 18;
             this.linkLabelOut.TabStop = true;
             this.linkLabelOut.Text = "選擇";
@@ -338,9 +338,9 @@ namespace TCFontCreator
             // linkLabelIn2
             // 
             this.linkLabelIn2.AutoSize = true;
-            this.linkLabelIn2.Location = new System.Drawing.Point(436, 76);
+            this.linkLabelIn2.Location = new System.Drawing.Point(436, 70);
             this.linkLabelIn2.Name = "linkLabelIn2";
-            this.linkLabelIn2.Size = new System.Drawing.Size(31, 13);
+            this.linkLabelIn2.Size = new System.Drawing.Size(29, 12);
             this.linkLabelIn2.TabIndex = 18;
             this.linkLabelIn2.TabStop = true;
             this.linkLabelIn2.Text = "選擇";
@@ -349,9 +349,9 @@ namespace TCFontCreator
             // linkLabelIn
             // 
             this.linkLabelIn.AutoSize = true;
-            this.linkLabelIn.Location = new System.Drawing.Point(436, 50);
+            this.linkLabelIn.Location = new System.Drawing.Point(436, 46);
             this.linkLabelIn.Name = "linkLabelIn";
-            this.linkLabelIn.Size = new System.Drawing.Size(31, 13);
+            this.linkLabelIn.Size = new System.Drawing.Size(29, 12);
             this.linkLabelIn.TabIndex = 18;
             this.linkLabelIn.TabStop = true;
             this.linkLabelIn.Text = "選擇";
@@ -360,9 +360,9 @@ namespace TCFontCreator
             // checkBoxJT
             // 
             this.checkBoxJT.AutoSize = true;
-            this.checkBoxJT.Location = new System.Drawing.Point(142, 167);
+            this.checkBoxJT.Location = new System.Drawing.Point(142, 154);
             this.checkBoxJT.Name = "checkBoxJT";
-            this.checkBoxJT.Size = new System.Drawing.Size(158, 17);
+            this.checkBoxJT.Size = new System.Drawing.Size(156, 16);
             this.checkBoxJT.TabIndex = 10;
             this.checkBoxJT.Text = "同時轉換日本漢字至繁體";
             this.checkBoxJT.UseVisualStyleBackColor = true;
@@ -370,18 +370,18 @@ namespace TCFontCreator
             // labeli2
             // 
             this.labeli2.AutoSize = true;
-            this.labeli2.Location = new System.Drawing.Point(6, 76);
+            this.labeli2.Location = new System.Drawing.Point(6, 70);
             this.labeli2.Name = "labeli2";
-            this.labeli2.Size = new System.Drawing.Size(68, 13);
+            this.labeli2.Size = new System.Drawing.Size(71, 12);
             this.labeli2.TabIndex = 1;
             this.labeli2.Text = "* 輸入字體2";
             // 
             // textBoxIn2
             // 
             this.textBoxIn2.AllowDrop = true;
-            this.textBoxIn2.Location = new System.Drawing.Point(77, 73);
+            this.textBoxIn2.Location = new System.Drawing.Point(77, 67);
             this.textBoxIn2.Name = "textBoxIn2";
-            this.textBoxIn2.Size = new System.Drawing.Size(353, 20);
+            this.textBoxIn2.Size = new System.Drawing.Size(353, 21);
             this.textBoxIn2.TabIndex = 1;
             this.textBoxIn2.DragDrop += new System.Windows.Forms.DragEventHandler(this.TextBox_DragDrop);
             this.textBoxIn2.DragEnter += new System.Windows.Forms.DragEventHandler(this.TextBox_DragEnter);
@@ -389,10 +389,10 @@ namespace TCFontCreator
             // FormMain
             // 
             this.AcceptButton = this.buttonStart;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Window;
-            this.ClientSize = new System.Drawing.Size(506, 354);
+            this.ClientSize = new System.Drawing.Size(506, 331);
             this.Controls.Add(this.panelMain);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
