@@ -137,20 +137,20 @@ namespace TCFontCreator
                     stmode = "var";
                     break;
                 case 5:
-                    stmode = "jt";
-                    break;
-                case 6:
                     stmode = "sat";
                     break;
-                case 7:
+                case 6:
                     stmode = "faf";
+                    break;
+                case 7:
+                    stmode = "jt";
                     break;
                 default:
                     stmode = "tc";
                     break;
             }
             SetExec();
-            if ((!System.IO.File.Exists(filein)) || (!System.IO.File.Exists(filein2) && comboBoxSys.SelectedIndex > 5) || string.IsNullOrWhiteSpace(fileout))
+            if ((!System.IO.File.Exists(filein)) || (!System.IO.File.Exists(filein2) && (stmode == "sat"|| stmode == "faf")) || string.IsNullOrWhiteSpace(fileout))
             {
                 MessageBox.Show(this, "文件無效，請重新選擇。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
@@ -305,15 +305,15 @@ namespace TCFontCreator
             checkBoxYitizi.Enabled = comboBoxSys.SelectedIndex != 4;
             comboBoxMulti.Enabled = comboBoxSys.SelectedIndex < 4;
             labelMilti.Enabled = comboBoxSys.SelectedIndex < 4;
-            checkBoxJT.Enabled = comboBoxSys.SelectedIndex == 5;
-            labeli2.Enabled = comboBoxSys.SelectedIndex > 5;
-            textBoxIn2.Enabled = comboBoxSys.SelectedIndex > 5;
-            linkLabelIn2.Enabled = comboBoxSys.SelectedIndex > 5;
-            if (comboBoxSys.SelectedIndex > 4)
+            checkBoxJT.Enabled = comboBoxSys.SelectedIndex == 7;
+            labeli2.Enabled = comboBoxSys.SelectedIndex == 5 || comboBoxSys.SelectedIndex == 6;
+            textBoxIn2.Enabled = comboBoxSys.SelectedIndex == 5 || comboBoxSys.SelectedIndex == 6;
+            linkLabelIn2.Enabled = comboBoxSys.SelectedIndex == 5 || comboBoxSys.SelectedIndex == 6;
+            if (comboBoxSys.SelectedIndex > 6)
             {
                 comboBoxApp.SelectedIndex = 0;
             }
-            comboBoxApp.Enabled = comboBoxSys.SelectedIndex < 5;
+            comboBoxApp.Enabled = comboBoxSys.SelectedIndex < 7;
         }
 
         private void LinkLabelIn_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
