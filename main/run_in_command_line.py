@@ -24,7 +24,6 @@ while True:
     stmode=str()
     vari='no'
     multi='no'
-    jtos=str()
     appused='otfcc'
     enname=str()
     chname=str()
@@ -51,11 +50,6 @@ while True:
             vari=input('是否同时补全同义字(输入Y/N)：\n').lower()
         if vari.lower()=='y':
             vari='True'
-    if stmode=='8':
-        while jtos not in {'y', 'n'}:
-            jtos=input('是否同转换日本汉字至繁体(输入Y/N)：\n').lower()
-        if jtos=='y':
-            multi='true'
     if stmode in {'1', '2', '3', '4'}:
         selmulti=str()
         while selmulti not in {'1', '2', '3'}:
@@ -64,12 +58,11 @@ while True:
             multi='single'
         elif selmulti=='3':
             multi='multi'
-    if stmode in {'1', '2', '3', '4', '5', '6', '7'}:
-        selapp=str()
-        while selapp not in {'1', '2'}:
-            selapp=input('请选择字体处理内核：\n\t1.otfcc\n\t2.FontForge\n')
-        if selapp=='2':
-            appused='FontForge'
+    selapp=str()
+    while selapp not in {'1', '2'}:
+        selapp=input('请选择字体处理内核：\n\t1.otfcc\n\t2.FontForge\n')
+    if selapp=='2':
+        appused='FontForge'
     
     enname=input('请输入新字体名称(英文), 如果不想设置可直接输入回车：\n').strip()
     if enname:
