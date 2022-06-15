@@ -16,17 +16,19 @@ if platform.system() == 'Linux':
 def getmulchar():
     s = str()
     with open(os.path.join(pydir, 'datas/Multi.txt'), 'r', encoding = 'utf-8') as f:
-        for l1 in f.readlines():
-            if l1.strip():
-                s += l1.strip()
+        for line in f.readlines():
+            line = line.strip()
+            if line and not line.startswith('#'):
+                s += line
     return s
 
 def addvariants():
     with open(os.path.join(pydir, 'datas/Variants.txt'),'r',encoding = 'utf-8') as f:
         for line in f.readlines():
-            vari = line.strip().split('\t')
-            if len(vari) < 2:
+            line = line.strip()
+            if line.startswith('#') or '\t' not in line:
                 continue
+            vari = line.strip().split('\t')
             codein = 0
             for ch1 in vari:
                 if ord(ch1) in fontcodes:
@@ -42,6 +44,9 @@ def addvariants():
 def transforme():
     with open(os.path.join(pydir, f'datas/Chars_{tabch}.txt'),'r',encoding = 'utf-8') as f:
         for line in f.readlines():
+            line = line.strip()
+            if line.startswith('#') or '\t' not in line:
+                continue
             s, t = line.strip().split('\t')
             s = s.strip()
             t = t.strip()
@@ -81,85 +86,42 @@ def removeglyhps():
         for line in f.readlines():
             if line.strip() and not line.strip().startswith('#'):
                 s.add(ord(line.strip()))
-    codes_final = s.union(adduni) & fontcodes
-    to_del = fontcodes - codes_final
-    for codepoint in to_del:
-        if str(codepoint) in font['cmap']:
-            glyph_name = font['cmap'].get(str(codepoint))
-            if glyph_name and set(map(int, glyph_codes[glyph_name])).issubset(to_del):
-                removecodes(glyph_name)
-    for glyph_name in set(font['glyph_order']) - get_use_glyphs():
-        if not glyph_name.startswith('.'):
-            remove_glyph(glyph_name)
-
-def removecodes(glyph_name):
-    for codepoint in glyph_codes[glyph_name]:
-        del font['cmap'][codepoint]
-    del glyph_codes[glyph_name]
-
-def get_use_glyphs():
-    use_glyphs = set()
-    for glyph_name in font['cmap'].values():
-        use_glyphs.add(glyph_name)
-        if 'GSUB' in font:
-            for lookup in font['GSUB']['lookups'].values():
-                if lookup['type'] == 'gsub_single':
-                    for subtable in lookup['subtables']:
-                        for a, b in subtable.items():
-                            if glyph_name == a:
-                                use_glyphs.add(b)
-                elif lookup['type'] == 'gsub_alternate':
-                    for subtable in lookup['subtables']:
-                        for a, b1 in subtable.items():
-                            if glyph_name == a:
-                                use_glyphs.update(b1)
-                elif lookup['type'] == 'gsub_ligature':
-                    for subtable in lookup['subtables']:
-                        for item in subtable['substitutions']:
-                            if glyph_name in item['from']:
-                                use_glyphs.add(item['to'])
-                elif lookup['type'] == 'gsub_chaining':
-                    for subtable in lookup['subtables']:
-                        if glyph_name in subtable['match']:
-                            use_glyphs.add(subtable['match'])
-    return use_glyphs
-
-def remove_glyph(glyph_name):
-    for codepoint in glyph_codes[glyph_name]:
-        del font['cmap'][codepoint]
-    del glyph_codes[glyph_name]
-    try:
-        font['glyph_order'].remove(glyph_name)
-    except ValueError:
-        pass
-    del font['glyf'][glyph_name]
+    s.update(adduni)
+    useg=set()
+    cdsall=set(map(str, s))
+    for gln in font['glyph_order']:
+        if gln in ('.notdef', '.null', 'nonmarkingreturn', 'NULL', 'NUL'):
+            useg.add(gln)
+        elif len(set(glyph_codes[gln]).intersection(cdsall)) > 0:
+            useg.add(gln)
     if 'GSUB' in font:
         for lookup in font['GSUB']['lookups'].values():
             if lookup['type'] == 'gsub_single':
                 for subtable in lookup['subtables']:
-                    for a, b in list(subtable.items()):
-                        if glyph_name == a or glyph_name == b:
-                            del subtable[a]
+                    for a, b in subtable.items():
+                        if a in useg:
+                            useg.add(b)
             elif lookup['type'] == 'gsub_alternate':
                 for subtable in lookup['subtables']:
-                    for a, b in list(subtable.items()):
-                        if glyph_name == a or glyph_name in b:
-                            del subtable[a]
+                    for a, b1 in subtable.items():
+                        if a in useg:
+                            useg.update(b1)
             elif lookup['type'] == 'gsub_ligature':
                 for subtable in lookup['subtables']:
-                    def predicate(
-                        item): return glyph_name not in item['from'] and glyph_name != item['to']
-                    subtable['substitutions'][:] = filter(
-                        predicate, subtable['substitutions'])
-    if 'GPOS' in font:
-        for lookup in font['GPOS']['lookups'].values():
-            if lookup['type'] == 'gpos_single':
-                for subtable in lookup['subtables']:
-                    subtable.pop(glyph_name, None)
-            elif lookup['type'] == 'gpos_pair':
-                for subtable in lookup['subtables']:
-                    subtable['first'].pop(glyph_name, None)
-                    subtable['second'].pop(glyph_name, None)
+                    for item in subtable['substitutions']:
+                        if set(item['from']).issubset(useg):
+                            useg.add(item['to'])
+    fgnames=set(font['glyf'].keys())
+    for gln in fgnames:
+        if gln not in useg:
+            for codepoint in glyph_codes[gln]:
+                del font['cmap'][codepoint]
+            del glyph_codes[gln]
+            try:
+                font['glyph_order'].remove(gln)
+            except ValueError:
+                pass
+            del font['glyf'][gln]
 
 def lookuptable():
     print('Building lookups...')
@@ -192,6 +154,9 @@ def build_char_table():
     chartab = []
     with open(os.path.join(pydir, f'datas/Chars_{tabch}.txt'),'r',encoding = 'utf-8') as f:
         for line in f.readlines():
+            line = line.strip()
+            if line.startswith('#') or '\t' not in line:
+                continue
             s, t = line.strip().split('\t')
             s = s.strip()
             t = t.strip()
@@ -202,6 +167,9 @@ def build_char_table():
                     chartab.append((s, t))
     with open(os.path.join(pydir, 'datas/Punctuation.txt'),'r',encoding = 'utf-8') as f:
         for line in f.readlines():
+            line = line.strip()
+            if line.startswith('#') or '\t' not in line:
+                continue
             s, t = line.strip().split('\t')
             if s and t and s != t:
                 codesc = ord(s)
@@ -225,6 +193,9 @@ def build_word_table():
     with open(os.path.join(pydir, 'datas/STPhrases.txt'),'r',encoding = 'utf-8') as f:
         ls = list()
         for line in f.readlines():
+            line = line.strip()
+            if line.startswith('#') or '\t' not in line:
+                continue
             ls.append(line.strip().split(' ')[0])
         for line in ls:
             s, t = line.strip().split('\t')
@@ -348,117 +319,6 @@ def setinfo():
         {'platformID': 3, 'encodingID': 1, 'languageID': 5124, 'nameID': 16, 'nameString': chname},
     ]
 
-def jptotr():
-    notr = True
-    if 'GSUB' in font:
-        trtab = list()
-        jis78 = list()
-        exptfm = list()
-        aalt = list()
-        torm = set()
-        for lp in font['GSUB']['lookups'].keys():
-            ftag = lp.split('_')[1].lower()
-            ftype = font['GSUB']['lookups'][lp]['type']
-            if ftype == 'gsub_single' or ftype=='gsub_alternate':
-                if ftag == 'trad':
-                    trtab.append(lp)
-                elif ftag == 'jp78':
-                    jis78.append(lp)
-                elif ftag == 'expt':
-                    exptfm.append(lp)
-                elif ftag=='aalt':
-                    aalt.append(lp)
-                elif ftag in {'jp83', 'jp90'}:
-                    torm.add(lp)
-        if len(exptfm) > 0:
-            print('Find ' + str(len(exptfm)) + ' Expert Form(s)!')
-            notr = False
-            gettab(exptfm)
-        if len(jis78) > 0:
-            print('Find ' + str(len(jis78)) + ' JIS78 Form(s)!')
-            notr = False
-            gettab(jis78)
-        if len(aalt) > 0:
-            print('Find '+str(len(aalt))+' Access All Alternate(s)!')
-            notr=False
-            gettabaa(aalt)
-        if len(trtab) > 0:
-            print('Find ' + str(len(trtab)) + ' Traditional Form(s)!')
-            notr = False
-            gettab(trtab, ckkanji=False)
-        for subs in torm:
-            del font['GSUB']['lookups'][subs]
-            f1todel = set()
-            for f1 in font['GSUB']['features'].keys():
-                if subs in font['GSUB']['features'][f1]:
-                    font['GSUB']['features'][f1].remove(subs)
-                if len(font['GSUB']['features'][f1]) == 0:
-                    f1todel.add(f1)
-                    continue
-            for  f1 in f1todel:
-                del font['GSUB']['features'][f1]
-    if notr:
-            print('No form found!')
-
-def gettrch(j, t):
-    for cod in glyph_codes[j]:
-        font['cmap'][str(cod)] = t
-        glyph_codes[t].append(cod)
-    glyph_codes[j].clear()
-
-def gettab(chtat, ckkanji=True):
-    for l1 in chtat:
-        ftype = font['GSUB']['lookups'][l1]['type']
-        for subtable in font['GSUB']['lookups'][l1]['subtables']:
-            for j, t in list(subtable.items()):
-                if ftype == 'gsub_single':
-                    cht = t
-                elif ftype == 'gsub_alternate' and len(t) == 1:
-                    cht = t[0]
-                if ckkanji and j in trex:
-                    continue
-                if not ckkanji or cht not in kanjigl:
-                    gettrch(j, cht)
-
-def gettabaa(aalt):
-    for aa in aalt:
-        ftype=font['GSUB']['lookups'][aa]['type']
-        for subtable in font['GSUB']['lookups'][aa]['subtables']:
-            for j, t in list(subtable.items()):
-                if ftype=='gsub_single':
-                    cht=t
-                elif ftype=='gsub_alternate' and len(t)==1:
-                    cht=t[0]
-                if j in kanjiaa and cht not in kanjigl:
-                    gettrch(j, cht)
-
-def getkanji():
-    s = set()
-    with open(os.path.join(pydir, 'datas/Kanji.txt'),'r',encoding = 'utf-8') as f:
-        for line in f.readlines():
-            chord=ord(line.strip())
-            if chord in fontcodes:
-                s.add(font['cmap'][str(chord)])
-    return s
-
-def getkanjiaa():
-    s=set()
-    with open(os.path.join(pydir, 'datas/Kanjiaa.txt'),'r',encoding = 'utf-8') as f:
-        for line in f.readlines():
-            if not line.startswith('0') and not line.startswith('#'):
-                chord=ord(line[0])
-                if chord in fontcodes:
-                    s.add(font['cmap'][str(chord)])
-    return s
-
-def gettrex():
-    s = set()
-    for ch in '邇珊跚麪麭猷叟鴉芽訝疼豹恢甑芒蜃埴据茨汲均鈷柔穿箭像揃噸頓篇巓扁拏擲斃氓膊膵茣裘褫襪贏躑輓閻霤霽騙魍親柧':
-        chord = ord(ch)
-        if chord in fontcodes:
-            s.add(font['cmap'][str(chord)])
-    return s
-
 def fontaddfont():
     print('Loading font2...')
     font2 = json.loads(subprocess.check_output((otfccdump, '--no-bom', fin2)).decode("utf-8", "ignore"))
@@ -467,9 +327,10 @@ def fontaddfont():
         fontcodes2 = set(map(int, font2['cmap']))
         with open(os.path.join(pydir, 'datas/Variants.txt'),'r',encoding = 'utf-8') as f:
             for line in f.readlines():
-                vari = line.strip().split('\t')
-                if len(vari) < 2:
+                line = line.strip()
+                if line.startswith('#') or '\t' not in line:
                     continue
+                vari = line.strip().split('\t')
                 codein = 0
                 for ch1 in vari:
                     if ord(ch1) in fontcodes2:
@@ -520,6 +381,29 @@ def sclglyph(glyph, scl):
         for reference in glyph['references']:
             reference['x'] = round(scl * reference['x'])
             reference['y'] = round(scl * reference['y'])
+def jptotr():
+    dv = dict()
+    for k in font['cmap_uvs'].keys():
+        c, v = k.split(' ')
+        if c not in dv:
+            dv[c] = dict()
+        dv[c][v] = font['cmap_uvs'][k]
+
+    tv = dict()
+    with open(os.path.join(pydir, 'datas/uvs-get-jp1-MARK.txt'), 'r', encoding='utf-8') as f:
+        for line in f.readlines():
+            if not line or line.startswith('#'):
+                continue
+            line = line.strip()
+            if line.endswith('X'):
+                a = line.split(' ')
+                tv[str(ord(a[0]))] = str(int(a[3].strip('X'), 16))
+
+    for k in dv.keys():
+        if k in tv:
+            if tv[k] in dv[k]:
+                tch = dv[k][tv[k]]
+                font['cmap'][k] = tch
 
 if len(sys.argv) > 5:
     print('Loading font...')
@@ -533,16 +417,12 @@ if len(sys.argv) > 5:
     adduni = set()
     fontcodes = set(map(int, font['cmap']))
     if tabch == 'jt':
-        glyph_codes = build_glyph_codes()
-        kanjigl = getkanji()
-        kanjiaa = getkanjiaa()
-        trex = gettrex()
         print('Moving glyph codes...')
         jptotr()
     if tabch == "var" or sys.argv[4].lower() == "true":
         print('Adding variants...')
         addvariants()
-    if tabch in {"tc", "tctw", "tchk", "tct"} or (tabch == "jt" and sys.argv[5].lower() == "true"):
+    if tabch in {"tc", "tctw", "tchk", "tct"}:
         print('Transforming codes...')
         usemulchar = sys.argv[5] == 'single'
         mulchar = getmulchar()
