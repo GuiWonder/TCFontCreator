@@ -185,10 +185,6 @@ namespace TCFontCreator
                 MessageBox.Show(this, "您需要輸入字體名稱。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            if (stmode == "jt")
-            {
-                multi = checkBoxJT.Checked.ToString();
-            }
             if (stmode == "sat" || stmode == "faf")
             {
                 filein += "|" + filein2;
@@ -305,15 +301,14 @@ namespace TCFontCreator
             checkBoxYitizi.Enabled = comboBoxSys.SelectedIndex != 4;
             comboBoxMulti.Enabled = comboBoxSys.SelectedIndex < 4;
             labelMilti.Enabled = comboBoxSys.SelectedIndex < 4;
-            checkBoxJT.Enabled = comboBoxSys.SelectedIndex == 7;
             labeli2.Enabled = comboBoxSys.SelectedIndex == 5 || comboBoxSys.SelectedIndex == 6;
             textBoxIn2.Enabled = comboBoxSys.SelectedIndex == 5 || comboBoxSys.SelectedIndex == 6;
             linkLabelIn2.Enabled = comboBoxSys.SelectedIndex == 5 || comboBoxSys.SelectedIndex == 6;
-            if (comboBoxSys.SelectedIndex > 6)
-            {
-                comboBoxApp.SelectedIndex = 0;
-            }
-            comboBoxApp.Enabled = comboBoxSys.SelectedIndex < 7;
+            //if (comboBoxSys.SelectedIndex > 6)
+            //{
+            //    comboBoxApp.SelectedIndex = 0;
+            //}
+            //comboBoxApp.Enabled = comboBoxSys.SelectedIndex < 7;
         }
 
         private void LinkLabelIn_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
