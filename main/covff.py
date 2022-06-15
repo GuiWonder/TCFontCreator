@@ -10,17 +10,19 @@ pydir = os.path.abspath(os.path.dirname(__file__))
 def getmulchar():
     s = str()
     with open(os.path.join(pydir, 'datas/Multi.txt'), 'r', encoding = 'utf-8') as f:
-        for l1 in f.readlines():
-            if l1.strip():
-                s += l1.strip()
+        for line in f.readlines():
+            line = line.strip()
+            if line and not line.startswith('#'):
+                s += line
     return s
 
 def addvariants():
     with open(os.path.join(pydir, 'datas/Variants.txt'), 'r', encoding = 'utf-8') as f:
         for line in f.readlines():
-            vari = line.strip().split('\t')
-            if len(vari) < 2:
+            line = line.strip()
+            if line.startswith('#') or '\t' not in line:
                 continue
+            vari = line.strip().split('\t')
             codein = 0
             for ch1 in vari:
                 chcode = ord(ch1)
@@ -36,46 +38,43 @@ def addvariants():
 def transforme():
     with open(os.path.join(pydir, f'datas/Chars_{tabch}.txt'), 'r',encoding = 'utf-8') as f:
         for line in f.readlines():
+            line = line.strip()
+            if line.startswith('#') or '\t' not in line:
+                continue
             s, t = line.strip().split('\t')
             s = s.strip()
             t = t.strip()
             if s and t and s != t and (usemulchar or not s in mulchar):
                 addunicodest(ord(t), ord(s))
 
-
 def addunicodest(tcunic, scunic):
     if tcunic not in code_glyph:
         return
-    glytc = font[font.findEncodingSlot(tcunic)]
+    glytc = font[code_glyph[tcunic]]
     if scunic in code_glyph:
-        glysc = font[font.findEncodingSlot(scunic)]
+        glysc = font[code_glyph[scunic]]
         if glytc.glyphname == glysc.glyphname:
             return
         glyph_codes[glysc.glyphname].remove(scunic)
-        l1=glyph_codes[glysc.glyphname]
-        if scunic == glysc.unicode:
-            if glysc.altuni != None:
-                glysc.unicode = l1[0]
-                if len(l1)>1:
-                    glysc.altuni=l1[1:]
-                else:
-                    glysc.altuni = None
-            else:
-                font.removeGlyph(scunic)
-        else:
-            l1.remove(glysc.unicode)
+        if glysc.unicode == scunic:
+            glysc.unicode = -1
+        elif glysc.altuni != None:
+            l1 = list()
+            for aa in glysc.altuni:
+                if aa[0] != scunic:
+                    l1.append(aa)
             if len(l1) > 0:
-                glysc.altuni = l1
+                glysc.altuni = tuple(l1)
             else:
                 glysc.altuni = None
-    ltcuni = list()
+    l2=list()
     if glytc.altuni != None:
-        for uni in glytc.altuni:
-            ltcuni.append(uni[0])
-    ltcuni.append(scunic)
-    glytc.altuni=ltcuni
+        for a2 in glytc.altuni:
+            l2.append(a2)
+    l2.append((scunic, 0, 0))
+    glytc.altuni = tuple(l2)
     glyph_codes[glytc.glyphname].append(scunic)
-    code_glyph[scunic]=glytc.glyphname
+    code_glyph[scunic] = glytc.glyphname
     alladdcds.add(scunic)
 
 def removeglyhps():
@@ -100,7 +99,7 @@ def removeglyhps():
     alcodes.update(alladdcds)
     useg=set()
     for gls in font.glyphs():
-        if gls.glyphname.startswith('.') or gls.glyphname == 'nonmarkingreturn':
+        if gls.glyphname in ('.notdef', '.null', 'nonmarkingreturn', 'NULL', 'NUL'):
             useg.add(gls.glyphname)
         elif len(set(glyph_codes[gls.glyphname]).intersection(alcodes))>0:
             useg.add(gls.glyphname)
@@ -122,6 +121,9 @@ def ForCharslookups():
     font.addLookupSubtable('stchar', 'stchar1')
     with open(os.path.join(pydir, f'datas/Chars_{tabch}.txt'), 'r', encoding = 'utf-8') as f:
         for line in f.readlines():
+            line = line.strip()
+            if line.startswith('#') or '\t' not in line:
+                continue
             s, t = line.strip().split('\t')
             s = s.strip()
             t = t.strip()
@@ -129,6 +131,9 @@ def ForCharslookups():
                 addlookupschar(ord(t), ord(s))
     with open(os.path.join(pydir, 'datas/Punctuation.txt'), 'r',encoding = 'utf-8') as f:
         for line in f.readlines():
+            line = line.strip()
+            if line.startswith('#') or '\t' not in line:
+                continue
             s, t = line.strip().split('\t')
             s = s.strip()
             t = t.strip()
@@ -146,6 +151,9 @@ def ForWordslookups():
     stword = list()
     with open(os.path.join(pydir, 'datas/STPhrases.txt'),'r',encoding = 'utf-8') as f:
         for line in f.readlines():
+            line = line.strip()
+            if line.startswith('#') or '\t' not in line:
+                continue
             isavail = True
             for ch1 in line.strip().replace('\t', '').replace(' ', ''):
                 if ord(ch1) not in code_glyph:
@@ -256,14 +264,14 @@ def getallcodesname(font, code_glyph, glyph_codes):
     glyph_codes.clear()
     for gls in font.glyphs():
         glyph_codes[gls.glyphname]=list()
-        if gls.unicode < 0:
-            continue
-        code_glyph[gls.unicode]=gls.glyphname
-        glyph_codes[gls.glyphname].append(gls.unicode)
+        if gls.unicode > -1:
+            code_glyph[gls.unicode]=gls.glyphname
+            glyph_codes[gls.glyphname].append(gls.unicode)
         if gls.altuni != None:
             for uni in gls.altuni:
-                code_glyph[uni[0]]=gls.glyphname
-                glyph_codes[gls.glyphname].append(uni[0])
+                if uni[1] == 0:
+                    code_glyph[uni[0]] = gls.glyphname
+                    glyph_codes[gls.glyphname].append(uni[0])
 
 def fontaddfont():
     print('Loading font2...')
@@ -279,9 +287,10 @@ def fontaddfont():
         allcodes2 = code_glyph2.keys()
         with open(os.path.join(pydir, 'datas/Variants.txt'),'r',encoding = 'utf-8') as f:
             for line in f.readlines():
-                vari = line.strip().split('\t')
-                if len(vari) < 2:
+                line = line.strip()
+                if line.startswith('#') or '\t' not in line:
                     continue
+                vari = line.strip().split('\t')
                 codein = 0
                 for ch1 in vari:
                     if ord(ch1) in code_glyph2.keys():
@@ -292,10 +301,10 @@ def fontaddfont():
                         if ord(ch1) not in code_glyph2.keys():
                             gname=code_glyph2[codein]
                             glyph_codes2[gname].append(ord(ch1))
-                            code_glyph2[ord(ch1)]=gname
+                            code_glyph2[ord(ch1)] = gname
         print('Adding glyphs...')
         print('This will take some time...')
-        allcodes=code_glyph.keys()
+        allcodes = code_glyph.keys()
         for n2 in glyph_codes2.keys():
             scds=set(glyph_codes2[n2])
             if not scds.issubset(allcodes):
@@ -332,6 +341,50 @@ def fontaddfont():
     font2.close()
     getallcodesname(font, code_glyph, glyph_codes)
 
+def jptotr():
+    tv = dict()
+    with open(os.path.join(pydir, 'datas/uvs-get-jp1-MARK.txt'), 'r', encoding='utf-8') as f:
+        for line in f.readlines():
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            if line.endswith('X'):
+                a = line.split(' ')
+                tv[ord(a[0])] = int(a[3].strip('X'), 16)
+    ltb=list()
+    for gls in font.glyphs():
+        if gls.altuni != None:
+            for alt in gls.altuni:
+                if alt[1] > 0:
+                    if alt[0] in tv and tv[alt[0]] == alt[1]:
+                        ltb.append((gls.glyphname, alt[0]))
+    for t1 in ltb:
+        g = font[font.findEncodingSlot(t1[1])]
+        if t1[0] == g.glyphname:
+            continue
+        if g.unicode == t1[1]:
+            g.unicode = -1
+        elif g.altuni != None:
+            l1=list()
+            for aa in g.altuni:
+                if aa[0] == t1[1] and aa[1] == 0:
+                    continue
+                l1.append(aa)
+            if len(l1) > 0:
+                g.altuni = tuple(l1)
+            else:
+                g.altuni = None
+        if font[t1[0]].unicode == -1:
+            font[t1[0]].unicode = t1[1]
+        else:
+            l2 = list()
+            if font[t1[0]].altuni != None:
+                for a2 in font[t1[0]].altuni:
+                    l2.append(a2)
+            l2.append((t1[1], 0, 0))
+            font[t1[0]].altuni = tuple(l2)
+    getallcodesname(font, code_glyph, glyph_codes)
+
 if len(sys.argv) > 5:
     print('Loading font...')
     tabch = sys.argv[3]
@@ -339,6 +392,8 @@ if len(sys.argv) > 5:
     if tabch in {"sat", "faf"}:
         fin, fin2 = sys.argv[1].split('|')
     font = fontforge.open(fin)
+    if font.is_cid:
+        font.cidFlatten()
     font.reencode("unicodefull")
     alladdcds = set()
     code_glyph = dict()
@@ -346,6 +401,9 @@ if len(sys.argv) > 5:
     getallcodesname(font, code_glyph, glyph_codes)
     if tabch in {"sat", "faf"}:
         fontaddfont()
+    if tabch == 'jt':
+        print('Moving glyph codes...')
+        jptotr()
     if tabch == "var" or sys.argv[4].lower() == "true":
         print('Adding variants...')
         addvariants()
