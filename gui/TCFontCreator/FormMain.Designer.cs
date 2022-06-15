@@ -56,7 +56,6 @@ namespace TCFontCreator
             this.linkLabelOut = new System.Windows.Forms.LinkLabel();
             this.linkLabelIn2 = new System.Windows.Forms.LinkLabel();
             this.linkLabelIn = new System.Windows.Forms.LinkLabel();
-            this.checkBoxJT = new System.Windows.Forms.CheckBox();
             this.labeli2 = new System.Windows.Forms.Label();
             this.textBoxIn2 = new System.Windows.Forms.TextBox();
             this.panel1.SuspendLayout();
@@ -286,7 +285,6 @@ namespace TCFontCreator
             this.panelMain.Controls.Add(this.panel1);
             this.panelMain.Controls.Add(this.checkBoxInfo);
             this.panelMain.Controls.Add(this.comboBoxSys);
-            this.panelMain.Controls.Add(this.checkBoxJT);
             this.panelMain.Controls.Add(this.checkBoxYitizi);
             this.panelMain.Controls.Add(this.buttonStart);
             this.panelMain.Controls.Add(this.label8);
@@ -356,16 +354,6 @@ namespace TCFontCreator
             this.linkLabelIn.TabStop = true;
             this.linkLabelIn.Text = "選擇";
             this.linkLabelIn.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.LinkLabelIn_LinkClicked);
-            // 
-            // checkBoxJT
-            // 
-            this.checkBoxJT.AutoSize = true;
-            this.checkBoxJT.Location = new System.Drawing.Point(142, 154);
-            this.checkBoxJT.Name = "checkBoxJT";
-            this.checkBoxJT.Size = new System.Drawing.Size(156, 16);
-            this.checkBoxJT.TabIndex = 10;
-            this.checkBoxJT.Text = "同時轉換日本漢字至繁體";
-            this.checkBoxJT.UseVisualStyleBackColor = true;
             // 
             // labeli2
             // 
@@ -438,7 +426,6 @@ namespace TCFontCreator
         private System.Windows.Forms.LinkLabel linkLabelIn;
         private System.Windows.Forms.ComboBox comboBoxMulti;
         private System.Windows.Forms.Label labelMilti;
-        private System.Windows.Forms.CheckBox checkBoxJT;
         private System.Windows.Forms.LinkLabel linkLabelIn2;
         private System.Windows.Forms.Label labeli2;
         private System.Windows.Forms.TextBox textBoxIn2;
