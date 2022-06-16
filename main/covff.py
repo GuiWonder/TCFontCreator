@@ -276,6 +276,8 @@ def getallcodesname(font, code_glyph, glyph_codes):
 def fontaddfont():
     print('Loading font2...')
     font2 = fontforge.open(fin2)
+    if font2.is_cid:
+        font2.cidFlatten()
     font2.em = font.em
     print('Getting glyph2 codes')
     code_glyph2 = dict()
