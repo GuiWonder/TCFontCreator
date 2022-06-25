@@ -61,7 +61,7 @@ def addunicodest(tcunic, scunic):
         elif glysc.altuni != None:
             l1 = list()
             for aa in glysc.altuni:
-                if aa[0] != scunic:
+                if aa[0] != scunic or aa[1] > 0:
                     l1.append(aa)
             if len(l1) > 0:
                 glysc.altuni = tuple(l1)
@@ -71,7 +71,7 @@ def addunicodest(tcunic, scunic):
     if glytc.altuni != None:
         for a2 in glytc.altuni:
             l2.append(a2)
-    l2.append((scunic, 0, 0))
+    l2.append((scunic, -1, 0))
     glytc.altuni = tuple(l2)
     glyph_codes[glytc.glyphname].append(scunic)
     code_glyph[scunic] = glytc.glyphname
@@ -269,7 +269,7 @@ def getallcodesname(font, code_glyph, glyph_codes):
             glyph_codes[gls.glyphname].append(gls.unicode)
         if gls.altuni != None:
             for uni in gls.altuni:
-                if uni[1] == 0:
+                if uni[1] <= 0:
                     code_glyph[uni[0]] = gls.glyphname
                     glyph_codes[gls.glyphname].append(uni[0])
 
@@ -361,7 +361,7 @@ def jptotr():
                     if alt[0] in tv and tv[alt[0]] == alt[1]:
                         ltb.append((gls.glyphname, alt[0]))
     for t1 in ltb:
-        g = font[font.findEncodingSlot(t1[1])]
+        g = font[code_glyph[t1[1]]]
         if t1[0] == g.glyphname:
             continue
         if g.unicode == t1[1]:
@@ -369,7 +369,7 @@ def jptotr():
         elif g.altuni != None:
             l1=list()
             for aa in g.altuni:
-                if aa[0] == t1[1] and aa[1] == 0:
+                if aa[0] == t1[1] and aa[1] <= 0:
                     continue
                 l1.append(aa)
             if len(l1) > 0:
@@ -383,9 +383,11 @@ def jptotr():
             if font[t1[0]].altuni != None:
                 for a2 in font[t1[0]].altuni:
                     l2.append(a2)
-            l2.append((t1[1], 0, 0))
+            l2.append((t1[1], -1, 0))
             font[t1[0]].altuni = tuple(l2)
-    getallcodesname(font, code_glyph, glyph_codes)
+        glyph_codes[g.glyphname].remove(t1[1])
+        glyph_codes[t1[0]].append(t1[1])
+        code_glyph[t1[1]]=t1[0]
 
 if len(sys.argv) > 5:
     print('Loading font...')
