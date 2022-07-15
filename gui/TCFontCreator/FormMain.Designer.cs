@@ -58,8 +58,12 @@ namespace TCFontCreator
             this.linkLabelIn = new System.Windows.Forms.LinkLabel();
             this.labeli2 = new System.Windows.Forms.Label();
             this.textBoxIn2 = new System.Windows.Forms.TextBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.comboBoxVar = new System.Windows.Forms.ComboBox();
+            this.panelTC = new System.Windows.Forms.Panel();
             this.panel1.SuspendLayout();
             this.panelMain.SuspendLayout();
+            this.panelTC.SuspendLayout();
             this.SuspendLayout();
             // 
             // label7
@@ -78,10 +82,7 @@ namespace TCFontCreator
             this.comboBoxSys.FormattingEnabled = true;
             this.comboBoxSys.Items.AddRange(new object[] {
             "生成繁體字體",
-            "生成繁體字體TW",
-            "生成繁體字體HK",
-            "生成繁體字體舊字形",
-            "補全同義字",
+            "使用同義字補全字庫",
             "合併簡體 GB2312、繁體 GB2312",
             "合併字體 1、字體 2",
             "日本新字轉爲傳承正字(僅日本字體)"});
@@ -150,11 +151,11 @@ namespace TCFontCreator
             // checkBoxInfo
             // 
             this.checkBoxInfo.AutoSize = true;
-            this.checkBoxInfo.Location = new System.Drawing.Point(22, 207);
+            this.checkBoxInfo.Location = new System.Drawing.Point(19, 217);
             this.checkBoxInfo.Name = "checkBoxInfo";
-            this.checkBoxInfo.Size = new System.Drawing.Size(90, 16);
+            this.checkBoxInfo.Size = new System.Drawing.Size(102, 16);
             this.checkBoxInfo.TabIndex = 5;
-            this.checkBoxInfo.Text = "新字體信息:";
+            this.checkBoxInfo.Text = "更新字體信息:";
             this.checkBoxInfo.UseVisualStyleBackColor = true;
             this.checkBoxInfo.CheckedChanged += new System.EventHandler(this.CheckBoxInfo_CheckedChanged);
             // 
@@ -252,11 +253,11 @@ namespace TCFontCreator
             this.checkBoxYitizi.AutoSize = true;
             this.checkBoxYitizi.Checked = true;
             this.checkBoxYitizi.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxYitizi.Location = new System.Drawing.Point(22, 154);
+            this.checkBoxYitizi.Location = new System.Drawing.Point(253, 124);
             this.checkBoxYitizi.Name = "checkBoxYitizi";
-            this.checkBoxYitizi.Size = new System.Drawing.Size(108, 16);
+            this.checkBoxYitizi.Size = new System.Drawing.Size(156, 16);
             this.checkBoxYitizi.TabIndex = 10;
-            this.checkBoxYitizi.Text = "同時補全同義字";
+            this.checkBoxYitizi.Text = "同時完成同義字補全字庫";
             this.checkBoxYitizi.UseVisualStyleBackColor = true;
             // 
             // panel1
@@ -269,15 +270,14 @@ namespace TCFontCreator
             this.panel1.Controls.Add(this.textBoxPSName);
             this.panel1.Controls.Add(this.label4);
             this.panel1.Controls.Add(this.textBoxChName);
-            this.panel1.Location = new System.Drawing.Point(113, 205);
+            this.panel1.Location = new System.Drawing.Point(110, 215);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(246, 105);
             this.panel1.TabIndex = 17;
             // 
             // panelMain
             // 
-            this.panelMain.Controls.Add(this.comboBoxMulti);
-            this.panelMain.Controls.Add(this.labelMilti);
+            this.panelMain.Controls.Add(this.panelTC);
             this.panelMain.Controls.Add(this.linkLabelOut);
             this.panelMain.Controls.Add(this.linkLabelIn2);
             this.panelMain.Controls.Add(this.linkLabelIn);
@@ -297,7 +297,7 @@ namespace TCFontCreator
             this.panelMain.Controls.Add(this.labelo);
             this.panelMain.Location = new System.Drawing.Point(13, 13);
             this.panelMain.Name = "panelMain";
-            this.panelMain.Size = new System.Drawing.Size(478, 311);
+            this.panelMain.Size = new System.Drawing.Size(478, 327);
             this.panelMain.TabIndex = 18;
             // 
             // comboBoxMulti
@@ -308,15 +308,15 @@ namespace TCFontCreator
             "不處理一對多",
             "使用單一常用字",
             "使用詞彙正確一簡對多繁"});
-            this.comboBoxMulti.Location = new System.Drawing.Point(141, 175);
+            this.comboBoxMulti.Location = new System.Drawing.Point(125, 33);
             this.comboBoxMulti.Name = "comboBoxMulti";
-            this.comboBoxMulti.Size = new System.Drawing.Size(202, 20);
+            this.comboBoxMulti.Size = new System.Drawing.Size(205, 20);
             this.comboBoxMulti.TabIndex = 20;
             // 
             // labelMilti
             // 
             this.labelMilti.AutoSize = true;
-            this.labelMilti.Location = new System.Drawing.Point(20, 179);
+            this.labelMilti.Location = new System.Drawing.Point(4, 37);
             this.labelMilti.Name = "labelMilti";
             this.labelMilti.Size = new System.Drawing.Size(113, 12);
             this.labelMilti.TabIndex = 19;
@@ -374,13 +374,47 @@ namespace TCFontCreator
             this.textBoxIn2.DragDrop += new System.Windows.Forms.DragEventHandler(this.TextBox_DragDrop);
             this.textBoxIn2.DragEnter += new System.Windows.Forms.DragEventHandler(this.TextBox_DragEnter);
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(5, 7);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(113, 12);
+            this.label1.TabIndex = 19;
+            this.label1.Text = "選擇要使用的異體字";
+            // 
+            // comboBoxVar
+            // 
+            this.comboBoxVar.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxVar.FormattingEnabled = true;
+            this.comboBoxVar.Items.AddRange(new object[] {
+            "默認",
+            "臺灣",
+            "香港",
+            "舊字形"});
+            this.comboBoxVar.Location = new System.Drawing.Point(125, 3);
+            this.comboBoxVar.Name = "comboBoxVar";
+            this.comboBoxVar.Size = new System.Drawing.Size(205, 20);
+            this.comboBoxVar.TabIndex = 20;
+            // 
+            // panelTC
+            // 
+            this.panelTC.Controls.Add(this.label1);
+            this.panelTC.Controls.Add(this.comboBoxVar);
+            this.panelTC.Controls.Add(this.labelMilti);
+            this.panelTC.Controls.Add(this.comboBoxMulti);
+            this.panelTC.Location = new System.Drawing.Point(13, 148);
+            this.panelTC.Name = "panelTC";
+            this.panelTC.Size = new System.Drawing.Size(417, 63);
+            this.panelTC.TabIndex = 21;
+            // 
             // FormMain
             // 
             this.AcceptButton = this.buttonStart;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Window;
-            this.ClientSize = new System.Drawing.Size(506, 331);
+            this.ClientSize = new System.Drawing.Size(506, 344);
             this.Controls.Add(this.panelMain);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
@@ -394,6 +428,8 @@ namespace TCFontCreator
             this.panel1.PerformLayout();
             this.panelMain.ResumeLayout(false);
             this.panelMain.PerformLayout();
+            this.panelTC.ResumeLayout(false);
+            this.panelTC.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -429,6 +465,9 @@ namespace TCFontCreator
         private System.Windows.Forms.LinkLabel linkLabelIn2;
         private System.Windows.Forms.Label labeli2;
         private System.Windows.Forms.TextBox textBoxIn2;
+        private System.Windows.Forms.Panel panelTC;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.ComboBox comboBoxVar;
     }
 }
 
