@@ -31,6 +31,7 @@ namespace TCFontCreator
         {
             comboBoxSys.SelectedIndex = 0;
             comboBoxApp.SelectedIndex = 0;
+            comboBoxVar.SelectedIndex = 0;
             comboBoxMulti.SelectedIndex = 1;
             panel1.Enabled = checkBoxInfo.Checked;
             CheckForIllegalCrossThreadCalls = false;
@@ -125,29 +126,35 @@ namespace TCFontCreator
                     stmode = "tc";
                     break;
                 case 1:
-                    stmode = "tctw";
-                    break;
-                case 2:
-                    stmode = "tchk";
-                    break;
-                case 3:
-                    stmode = "tct";
-                    break;
-                case 4:
                     stmode = "var";
                     break;
-                case 5:
+                case 2:
                     stmode = "sat";
                     break;
-                case 6:
+                case 3:
                     stmode = "faf";
                     break;
-                case 7:
+                case 4:
                     stmode = "jt";
                     break;
                 default:
                     stmode = "tc";
                     break;
+            }
+            if (stmode == "tc")
+            {
+                if (comboBoxVar.SelectedIndex==1)
+                {
+                    stmode += "tw";
+                }
+                else if (comboBoxVar.SelectedIndex==2)
+                {
+                    stmode += "hk";
+                }
+                else if (comboBoxVar.SelectedIndex==3)
+                {
+                    stmode += "t";
+                }
             }
             SetExec();
             if ((!System.IO.File.Exists(filein)) || (!System.IO.File.Exists(filein2) && (stmode == "sat"|| stmode == "faf")) || string.IsNullOrWhiteSpace(fileout))
@@ -298,17 +305,12 @@ namespace TCFontCreator
 
         private void ComboBoxSys_SelectedIndexChanged(object sender, EventArgs e)
         {
-            checkBoxYitizi.Enabled = comboBoxSys.SelectedIndex != 4;
-            comboBoxMulti.Enabled = comboBoxSys.SelectedIndex < 4;
-            labelMilti.Enabled = comboBoxSys.SelectedIndex < 4;
-            labeli2.Enabled = comboBoxSys.SelectedIndex == 5 || comboBoxSys.SelectedIndex == 6;
-            textBoxIn2.Enabled = comboBoxSys.SelectedIndex == 5 || comboBoxSys.SelectedIndex == 6;
-            linkLabelIn2.Enabled = comboBoxSys.SelectedIndex == 5 || comboBoxSys.SelectedIndex == 6;
-            //if (comboBoxSys.SelectedIndex > 6)
-            //{
-            //    comboBoxApp.SelectedIndex = 0;
-            //}
-            //comboBoxApp.Enabled = comboBoxSys.SelectedIndex < 7;
+            checkBoxYitizi.Enabled = comboBoxSys.SelectedIndex != 1;
+            panelTC.Enabled = comboBoxSys.SelectedIndex == 0;
+            //labelMilti.Enabled = comboBoxSys.SelectedIndex < 4;
+            labeli2.Enabled = comboBoxSys.SelectedIndex == 2 || comboBoxSys.SelectedIndex == 3;
+            textBoxIn2.Enabled = comboBoxSys.SelectedIndex == 2 || comboBoxSys.SelectedIndex == 3;
+            linkLabelIn2.Enabled = comboBoxSys.SelectedIndex == 2 || comboBoxSys.SelectedIndex == 3;
         }
 
         private void LinkLabelIn_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
