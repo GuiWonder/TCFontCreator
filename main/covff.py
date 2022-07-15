@@ -75,7 +75,6 @@ def addunicodest(tcunic, scunic):
     glytc.altuni = tuple(l2)
     glyph_codes[glytc.glyphname].append(scunic)
     code_glyph[scunic] = glytc.glyphname
-    alladdcds.add(scunic)
 
 def removeglyhps():
     alcodes = set(chain(
@@ -96,12 +95,11 @@ def removeglyhps():
         for line in f.readlines():
             if line.strip() and not line.strip().startswith('#'):
                 alcodes.add(ord(line.strip()))
-    alcodes.update(alladdcds)
     useg=set()
     for gls in font.glyphs():
         if gls.glyphname in ('.notdef', '.null', 'nonmarkingreturn', 'NULL', 'NUL'):
             useg.add(gls.glyphname)
-        elif len(set(glyph_codes[gls.glyphname]).intersection(alcodes))>0:
+        elif len(set(glyph_codes[gls.glyphname]).intersection(alcodes)) > 0:
             useg.add(gls.glyphname)
     reget = set()
     for gly in useg:
@@ -399,7 +397,6 @@ if len(sys.argv) > 5:
     if font.is_cid:
         font.cidFlatten()
     font.reencode("unicodefull")
-    alladdcds = set()
     code_glyph = dict()
     glyph_codes=dict()
     getallcodesname(font, code_glyph, glyph_codes)
