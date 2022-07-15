@@ -1,4 +1,4 @@
-import os, sys, json, subprocess, platform
+import os, sys, json, subprocess, platform, tempfile, gc
 from collections import defaultdict
 from datetime import date
 from itertools import chain
@@ -39,7 +39,6 @@ def addvariants():
                     if ord(ch1) not in fontcodes:
                         font['cmap'][str(ord(ch1))] = font['cmap'][str(codein)]
                         fontcodes.add(ord(ch1))
-                        adduni.add(ord(ch1))
 
 def transforme():
     with open(os.path.join(pydir, f'datas/Chars_{tabch}.txt'),'r',encoding = 'utf-8') as f:
@@ -59,7 +58,6 @@ def addunicodest(tcunic, scunic):
     tcname = font['cmap'][str(tcunic)]
     font['cmap'][str(scunic)] = tcname
     fontcodes.add(scunic)
-    adduni.add(scunic)
 
 def build_glyph_codes():
     glyph_codes = defaultdict(list)
@@ -86,7 +84,6 @@ def removeglyhps():
         for line in f.readlines():
             if line.strip() and not line.strip().startswith('#'):
                 s.add(ord(line.strip()))
-    s.update(adduni)
     useg=set()
     cdsall=set(map(str, s))
     for gln in font['glyph_order']:
@@ -318,6 +315,20 @@ def setinfo():
         {'platformID': 3, 'encodingID': 1, 'languageID': 5124, 'nameID': 4, 'nameString': chname + ' ' + sbfamily},
         {'platformID': 3, 'encodingID': 1, 'languageID': 5124, 'nameID': 16, 'nameString': chname},
     ]
+    if 'CFF_' in font:
+        font['CFF_']['fontName']=psname
+        font['CFF_']['fullName']=enname + ' ' + sbfamily
+        font['CFF_']['familyName']=enname
+        if 'fdArray' in font['CFF_']:
+            nfd=dict()
+            pn=enname.replace(' ', '')
+            for k in font['CFF_']['fdArray'].keys():
+                k2=pn+'-'+'-'.join(k.split('-')[1:])
+                nfd[k2]=font['CFF_']['fdArray'][k]
+            font['CFF_']['fdArray']=nfd
+            for gl in font['glyf'].values():
+                if 'CFF_fdSelect' in gl:
+                    gl['CFF_fdSelect']=pn+'-'+'-'.join(gl['CFF_fdSelect'].split('-')[1:])
 
 def fontaddfont():
     print('Loading font2...')
@@ -414,7 +425,6 @@ if len(sys.argv) > 5:
     font = json.loads(subprocess.check_output((otfccdump, '--no-bom', fin)).decode("utf-8", "ignore"))
     if tabch in {"sat", "faf"}:
         fontaddfont()
-    adduni = set()
     fontcodes = set(map(int, font['cmap']))
     if tabch == 'jt':
         print('Moving glyph codes...')
@@ -443,6 +453,15 @@ if len(sys.argv) > 5:
         print('Setting font info...')
         setinfo()
     print('Generating font...')
-    subprocess.run((otfccbuild, '--keep-modified-time', '--keep-average-char-width', '-O3', '-q', '-o', sys.argv[2]),
-                input = json.dumps(font), encoding = 'utf-8')
+    tmpfile = tempfile.mktemp('.json')
+    with open(tmpfile, 'w', encoding='utf-8') as f:
+        f.write(json.dumps(font))
+    del font
+    for x in set(locals().keys()):
+        if x not in ('os', 'subprocess', 'otfccbuild', 'sys', 'tmpfile', 'gc'):
+            del locals()[x]
+    gc.collect()
+    print('Creating font file...')
+    subprocess.run((otfccbuild, '--keep-modified-time', '--keep-average-char-width', '-O3', '-q', '-o', sys.argv[2], tmpfile))
+    os.remove(tmpfile)
     print('Finished!')
