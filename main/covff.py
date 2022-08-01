@@ -7,12 +7,16 @@ from itertools import chain
 
 pydir = os.path.abspath(os.path.dirname(__file__))
 
-def getmulchar():
+def getmulchar(allch):
     s = str()
     with open(os.path.join(pydir, 'datas/Multi.txt'), 'r', encoding = 'utf-8') as f:
         for line in f.readlines():
             line = line.strip()
-            if line and not line.startswith('#'):
+            if not line or line.startswith('##'):
+                continue
+            if allch:
+                s += line.strip('#').strip()
+            elif not line.startswith('#'):
                 s += line
     return s
 
@@ -275,6 +279,7 @@ def fontaddfont():
     print('Loading font2...')
     font2 = fontforge.open(fin2)
     if font2.is_cid:
+        print('Warning: this is a CID font, we need to FLATTEN it!')
         font2.cidFlatten()
     font2.em = font.em
     print('Getting glyph2 codes')
@@ -395,6 +400,7 @@ if len(sys.argv) > 5:
         fin, fin2 = sys.argv[1].split('|')
     font = fontforge.open(fin)
     if font.is_cid:
+        print('Warning: this is a CID font, we need to FLATTEN it!')
         font.cidFlatten()
     font.reencode("unicodefull")
     code_glyph = dict()
@@ -411,7 +417,7 @@ if len(sys.argv) > 5:
     if tabch in {"tc", "tctw", "tchk", "tct"}:
         print('Transforming codes...')
         usemulchar = sys.argv[5] == 'single'
-        mulchar = getmulchar()
+        mulchar = getmulchar(sys.argv[5] == "multi")
         transforme()
         if sys.argv[5] == "multi":
             print('Removing glyghs...')
