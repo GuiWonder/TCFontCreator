@@ -13,12 +13,16 @@ if platform.system() == 'Linux':
     otfccdump += '2'
     otfccbuild += '2'
 
-def getmulchar():
+def getmulchar(allch):
     s = str()
     with open(os.path.join(pydir, 'datas/Multi.txt'), 'r', encoding = 'utf-8') as f:
         for line in f.readlines():
             line = line.strip()
-            if line and not line.startswith('#'):
+            if not line or line.startswith('##'):
+                continue
+            if allch:
+                s += line.strip('#').strip()
+            elif not line.startswith('#'):
                 s += line
     return s
 
@@ -59,9 +63,9 @@ def addunicodest(tcunic, scunic):
     font['cmap'][str(scunic)] = tcname
     fontcodes.add(scunic)
 
-def build_glyph_codes():
+def build_glyph_codes(f):
     glyph_codes = defaultdict(list)
-    for codepoint, glyph_name in font['cmap'].items():
+    for codepoint, glyph_name in f['cmap'].items():
         glyph_codes[glyph_name].append(codepoint)
     return glyph_codes
 
@@ -353,9 +357,7 @@ def fontaddfont():
                             font2['cmap'][str(ord(ch1))] = font2['cmap'][str(codein)]
                             fontcodes2.add(ord(ch1))
     print('Adding glyphs...')
-    glyph_codes2 = defaultdict(set)
-    for codepoint, glyph_name in font2['cmap'].items():
-        glyph_codes2[glyph_name].add(codepoint)
+    glyph_codes2 = build_glyph_codes(font2)
     allcodes1 = set(font['cmap'].keys())
     scl = 1.0
     if font["head"]["unitsPerEm"] != font2["head"]["unitsPerEm"]:
@@ -435,11 +437,11 @@ if len(sys.argv) > 5:
     if tabch in {"tc", "tctw", "tchk", "tct"}:
         print('Transforming codes...')
         usemulchar = sys.argv[5] == 'single'
-        mulchar = getmulchar()
+        mulchar = getmulchar(sys.argv[5] == "multi")
         transforme()
         if sys.argv[5] == "multi":
             print('Manage GSUB...')
-            glyph_codes = build_glyph_codes()
+            glyph_codes = build_glyph_codes(font)
             print('Removing glyghs...')
             removeglyhps()
             if sys.argv[4].lower() == "true":
