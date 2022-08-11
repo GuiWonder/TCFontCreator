@@ -95,23 +95,25 @@ def removeglyhps():
             useg.add(gln)
         elif len(set(glyph_codes[gln]).intersection(cdsall)) > 0:
             useg.add(gln)
+    reget = set()
     if 'GSUB' in font:
         for lookup in font['GSUB']['lookups'].values():
             if lookup['type'] == 'gsub_single':
                 for subtable in lookup['subtables']:
                     for a, b in subtable.items():
                         if a in useg:
-                            useg.add(b)
+                            reget.add(b)
             elif lookup['type'] == 'gsub_alternate':
                 for subtable in lookup['subtables']:
                     for a, b1 in subtable.items():
                         if a in useg:
-                            useg.update(b1)
+                            reget.update(b1)
             elif lookup['type'] == 'gsub_ligature':
                 for subtable in lookup['subtables']:
                     for item in subtable['substitutions']:
                         if set(item['from']).issubset(useg):
-                            useg.add(item['to'])
+                            reget.add(item['to'])
+    useg.update(reget)
     fgnames=set(font['glyf'].keys())
     for gln in fgnames:
         if gln not in useg:
