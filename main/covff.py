@@ -37,7 +37,7 @@ def addvariants():
                 for ch1 in vari:
                     chcode = ord(ch1)
                     if chcode not in code_glyph:
-                        addunicodest(codein, chcode)
+                        mvcodetocode(chcode, codein)
 
 def transforme():
     with open(os.path.join(pydir, f'datas/Chars_{tabch}.txt'), 'r',encoding = 'utf-8') as f:
@@ -49,36 +49,60 @@ def transforme():
             s = s.strip()
             t = t.strip()
             if s and t and s != t and (usemulchar or not s in mulchar):
-                addunicodest(ord(t), ord(s))
+                mvcodetocode(ord(s), ord(t))
 
-def addunicodest(tcunic, scunic):
-    if tcunic not in code_glyph:
+def mvcodetocode(uni, unito):
+    if unito not in code_glyph:
         return
-    glytc = font[code_glyph[tcunic]]
-    if scunic in code_glyph:
-        glysc = font[code_glyph[scunic]]
-        if glytc.glyphname == glysc.glyphname:
+    gto=code_glyph[unito]
+    if uni in code_glyph:
+        gf=code_glyph[uni]
+        if gf==gto:
             return
-        glyph_codes[glysc.glyphname].remove(scunic)
-        if glysc.unicode == scunic:
-            glysc.unicode = -1
-        elif glysc.altuni != None:
-            l1 = list()
-            for aa in glysc.altuni:
-                if aa[0] != scunic or aa[1] > 0:
-                    l1.append(aa)
-            if len(l1) > 0:
-                glysc.altuni = tuple(l1)
-            else:
-                glysc.altuni = None
-    l2=list()
-    if glytc.altuni != None:
-        for a2 in glytc.altuni:
-            l2.append(a2)
-    l2.append((scunic, -1, 0))
-    glytc.altuni = tuple(l2)
-    glyph_codes[glytc.glyphname].append(scunic)
-    code_glyph[scunic] = glytc.glyphname
+        rmcode(gf, uni)
+    adduni(gto, uni)
+def rmcode(gly, uni):
+    glyph_codes[gly].remove(uni)
+    del code_glyph[uni]
+    gl=font[gly]
+    lu=list()
+    if len(glyph_codes[gly])<1:
+        if gl.unicode==uni:
+            gl.unicode=-1
+            return
+        gl.unicode=-1
+        if gl.altuni!=None:
+            lu=list()
+            for alt in gl.altuni:
+                if alt[1] > 0:
+                    lu.append(alt)
+    else:
+        gl.unicode=glyph_codes[gly][0]
+        lu=list()
+        if gl.altuni!=None:
+            lu=list()
+            for alt in gl.altuni:
+                if alt[1] > 0:
+                    lu.append(alt)
+        for u1 in glyph_codes[gly][1:]:
+            lu.append((u1, -1, 0))
+    if len(lu) > 0:
+        gl.altuni = tuple(lu)
+    else:
+        gl.altuni = None
+
+def adduni(gly, uni):
+    glyph_codes[gly].append(uni)
+    code_glyph[uni]=gly
+    if font[gly].unicode<0:
+        font[gly].unicode=uni
+    else:
+        lu=list()
+        if font[gly].altuni != None:
+            for alt in font[gly].altuni:
+                lu.append(alt)
+        lu.append((uni, -1, 0))
+        font[gly].altuni = tuple(lu)
 
 def removeglyhps():
     alcodes = set(chain(
@@ -364,33 +388,13 @@ def jptotr():
                     if alt[0] in tv and tv[alt[0]] == alt[1]:
                         ltb.append((gls.glyphname, alt[0]))
     for t1 in ltb:
-        g = font[code_glyph[t1[1]]]
-        if t1[0] == g.glyphname:
-            continue
-        if g.unicode == t1[1]:
-            g.unicode = -1
-        elif g.altuni != None:
-            l1=list()
-            for aa in g.altuni:
-                if aa[0] == t1[1] and aa[1] <= 0:
-                    continue
-                l1.append(aa)
-            if len(l1) > 0:
-                g.altuni = tuple(l1)
-            else:
-                g.altuni = None
-        if font[t1[0]].unicode == -1:
-            font[t1[0]].unicode = t1[1]
-        else:
-            l2 = list()
-            if font[t1[0]].altuni != None:
-                for a2 in font[t1[0]].altuni:
-                    l2.append(a2)
-            l2.append((t1[1], -1, 0))
-            font[t1[0]].altuni = tuple(l2)
-        glyph_codes[g.glyphname].remove(t1[1])
-        glyph_codes[t1[0]].append(t1[1])
-        code_glyph[t1[1]]=t1[0]
+        unimvtogly(t1[1], t1[0])
+
+def unimvtogly(uni, gly):
+    if code_glyph[uni]==gly:
+        return
+    rmcode(code_glyph[uni], uni)
+    adduni(gly, uni)
 
 if len(sys.argv) > 5:
     print('Loading font...')
