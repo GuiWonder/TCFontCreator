@@ -6,7 +6,7 @@ from itertools import chain
 pydir = os.path.abspath(os.path.dirname(__file__))
 otfccdump = os.path.join(pydir, 'otfcc/otfccdump')
 otfccbuild = os.path.join(pydir, 'otfcc/otfccbuild')
-if platform.system() == 'Mac':
+if platform.system() in ('Mac', 'Darwin'):
     otfccdump += '1'
     otfccbuild += '1'
 if platform.system() == 'Linux':
@@ -115,16 +115,66 @@ def removeglyhps():
                             reget.add(item['to'])
     useg.update(reget)
     fgnames=set(font['glyf'].keys())
+    isrm=set()
     for gln in fgnames:
         if gln not in useg:
             for codepoint in glyph_codes[gln]:
                 del font['cmap'][codepoint]
+            isrm.add(gln)
             del glyph_codes[gln]
             try:
                 font['glyph_order'].remove(gln)
             except ValueError:
                 pass
             del font['glyf'][gln]
+    print('Checking Lookup tables...')
+    if 'GSUB' in font:
+        for lookup in font['GSUB']['lookups'].values():
+            if lookup['type'] == 'gsub_single':
+                for subtable in lookup['subtables']:
+                    for g1, g2 in list(subtable.items()):
+                        if g1 in isrm or g2 in isrm:
+                            del subtable[g1]
+            elif lookup['type'] == 'gsub_alternate':
+                for subtable in lookup['subtables']:
+                    for item in set(subtable.keys()):
+                        if item in isrm or len(set(subtable[item]).intersection(isrm))>0:
+                            del subtable[item]
+            elif lookup['type'] == 'gsub_ligature': 
+                for subtable in lookup['subtables']:
+                    s1=list()
+                    for item in subtable['substitutions']:
+                        if item['to'] not in isrm and len(set(item['from']).intersection(isrm))<1:
+                            s1.append(item)
+                    subtable['substitutions']=s1
+            elif lookup['type'] == 'gsub_chaining':
+                for subtable in lookup['subtables']:
+                    for ls in subtable['match']:
+                        for l1 in ls:
+                            l1=list(set(l1).difference(isrm))
+    if 'GPOS' in font:
+        for lookup in font['GPOS']['lookups'].values():
+            if lookup['type'] == 'gpos_single':
+                for subtable in lookup['subtables']:
+                    for item in list(subtable.keys()):
+                        if item in isrm:
+                            del subtable[item]
+            elif lookup['type'] == 'gpos_pair':
+                for subtable in lookup['subtables']:
+                    for item in list(subtable['first'].keys()):
+                        if item in isrm:
+                            del subtable['first'][item]
+                    for item in list(subtable['second'].keys()):
+                        if item in isrm:
+                            del subtable['second'][item]
+            elif lookup['type'] == 'gpos_mark_to_base':
+                nsb=list()
+                for subtable in lookup['subtables']:
+                    gs=set(subtable['marks'].keys()).union(set(subtable['bases'].keys()))
+                    if len(gs.intersection(isrm))<1:
+                        nsb.append(subtable)
+                lookup['subtables']=nsb
+
 
 def lookuptable():
     print('Building lookups...')
