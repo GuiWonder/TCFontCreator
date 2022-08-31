@@ -139,6 +139,7 @@ def removeglyhps():
     useg.update(reget)
     for gls in font.glyphs():
         if gls.glyphname not in useg:
+            gls.removePosSub('*')
             font.removeGlyph(gls)
     getallcodesname(font, code_glyph, glyph_codes)
 
