@@ -428,9 +428,9 @@ if len(sys.argv) > 5:
             print('Removing glyghs...')
             removeglyhps()
             if sys.argv[4].lower() == "true":
-                print('Recycling variants...')
+                print('Checking variants...')
                 addvariants()
-            print('Manage GSUB...')
+            print('Checking GSUB...')
             print('Adding chars lookups...')
             ForCharslookups()
             print('Adding words lookups...')
