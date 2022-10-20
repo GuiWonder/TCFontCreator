@@ -32,7 +32,8 @@
 ## 下载地址
 可从 [Releases](https://github.com/GuiWonder/TCFontCreator/releases) 页面下载最新版。
 
-## 本项目中用到的项目
+## 特别感谢
 * [otfcc](https://github.com/caryll/otfcc)
 * [FontForge](https://github.com/fontforge/fontforge)
 * [Open Chinese Convert](https://github.com/BYVoid/OpenCC)
+* [《正确实现简转繁字体》](https://ayaka.shn.hk/s2tfont/)
