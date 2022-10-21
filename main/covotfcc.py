@@ -128,6 +128,14 @@ def removeglyhps():
         font['glyph_order'].remove(ugl)
         del font['glyf'][ugl]
 
+    print('Checking cmap tables...')
+    for cod in set(font['cmap'].keys()):
+        if font['cmap'][cod] in unusegl:
+            del font['cmap'][cod]
+    if 'cmap_uvs' in font:
+        for uvk in set(font['cmap_uvs'].keys()):
+            if font['cmap_uvs'][uvk] in unusegl:
+                del font['cmap_uvs'][uvk]
     print('Checking Lookup tables...')
     if 'GSUB' in font:
         for lookup in font['GSUB']['lookups'].values():
@@ -500,7 +508,6 @@ if len(sys.argv) > 5:
         removeglyhps()
         if sys.argv[5] == "multi":
             print('Checking GSUB...')
-            glyph_codes = build_glyph_codes(font)
             if sys.argv[4].lower() == "true":
                 print('Checking variants...')
                 addvariants()
