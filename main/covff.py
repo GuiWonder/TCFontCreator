@@ -177,19 +177,19 @@ def addlookupschar(tcunic, scunic):
 def ForWordslookups():
     stword = list()
     with open(os.path.join(pydir, 'datas/STPhrases.txt'),'r',encoding = 'utf-8') as f:
+        ccods=set(code_glyph.keys())
         for line in f.readlines():
-            line = line.strip()
+            line = line.strip().split(' ')[0]
             if line.startswith('#') or '\t' not in line:
                 continue
-            isavail = True
-            for ch1 in line.strip().replace('\t', '').replace(' ', ''):
-                if ord(ch1) not in code_glyph:
-                    isavail = False
-                    break
-            if isavail:
-                s, t = line.strip().split(' ')[0].split('\t')
-                if s.strip() and t.strip():
-                    stword.append((s.strip(), t.strip()))
+            s, t = line.strip().split('\t')
+            s = s.strip()
+            t = t.strip()
+            if not(s and t):
+                continue
+            codestc = set(ord(c) for c in s+t)
+            if codestc.issubset(ccods):
+                stword.append((s, t))
     if len(stword) < 1:
         return
     sumf = sum(1 for _ in font.glyphs())
@@ -204,7 +204,7 @@ def ForWordslookups():
     for wd in stword:
         tlen += len(wd[0] + wd[1])
         wlen2 = len(stword[i][0])
-        if tlen >= 15000 or wlen2 < wlen:
+        if tlen >= 20000 or wlen2 < wlen:
             tlen = 0
             wlen = wlen2
             j += 1
