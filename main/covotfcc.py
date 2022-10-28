@@ -241,38 +241,22 @@ def build_char_table():
                                             'subtables': [kt]
                                          }
 
-def addlookupschar(chtab):
-    kt = dict()
-    for s, t in chtab:
-        gls=font['cmap'][str(ord(s))]
-        glt=font['cmap'][str(ord(t))]
-        if gls != glt:
-            kt[gls] = glt
-    font['GSUB']['lookups']['stchars'] = {
-                                            'type': 'gsub_single',
-                                            'flags': {},
-                                            'subtables': [kt]
-                                         }
-
 def build_word_table():
     stword = list()
     with open(os.path.join(pydir, 'datas/STPhrases.txt'),'r',encoding = 'utf-8') as f:
-        ls = list()
+        ccods=set(font['cmap'].keys())
         for line in f.readlines():
-            line = line.strip()
+            line = line.strip().split(' ')[0]
             if line.startswith('#') or '\t' not in line:
                 continue
-            ls.append(line.strip().split(' ')[0])
-        for line in ls:
-            s, t = line.strip().split('\t')
+            s, t = line.split('\t')
             s = s.strip()
             t = t.strip()
             if not(s and t):
                 continue
-            codesc = tuple(str(ord(c)) for c in s)
-            codetc = tuple(str(ord(c)) for c in t)
-            if all(codepoint in font['cmap'] for codepoint in codesc) \
-                    and all(codepoint in font['cmap'] for codepoint in codetc):
+            
+            codestc = set(str(ord(c)) for c in s+t)
+            if codestc.issubset(ccods):
                 stword.append((s, t))
     if len(stword) + len(font['glyph_order']) > 65535:
         nd=len(stword) + len(font['glyph_order']) - 65535
