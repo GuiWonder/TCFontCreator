@@ -203,8 +203,8 @@ def lookuptable():
     if not 'hani_DFLT' in font['GSUB']['languages']:
         font['GSUB']['languages']['hani_DFLT'] = {'features': []}
     for table in font['GSUB']['languages'].values():
-        table['features'].insert(0, 'liga_st')
-    font['GSUB']['features']['liga_st'] = ['wordsc', 'stchars', 'wordtc']
+        table['features'].insert(0, 'ccmp_st')
+    font['GSUB']['features']['ccmp_st'] = ['wordsc', 'stchars', 'wordtc']
     font['GSUB']['lookupOrder'].append('wordsc')
     font['GSUB']['lookupOrder'].append('stchars')
     font['GSUB']['lookupOrder'].append('wordtc')

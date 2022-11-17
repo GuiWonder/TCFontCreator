@@ -144,7 +144,7 @@ def removeglyhps():
     getallcodesname(font, code_glyph, glyph_codes)
 
 def ForCharslookups():
-    font.addLookup('stchar', 'gsub_single', None, (("liga",(("hani",("dflt")),)),))
+    font.addLookup('stchar', 'gsub_single', None, (("ccmp",(("hani",("dflt")),)),))
     font.addLookupSubtable('stchar', 'stchar1')
     with open(os.path.join(pydir, f'datas/Chars_{tabch}.txt'), 'r', encoding = 'utf-8') as f:
         for line in f.readlines():
@@ -196,8 +196,8 @@ def ForWordslookups():
     if len(stword) + sumf > 65535:
         raise RuntimeError('Not enough glyph space! You need ' + str(len(stword) + sumf - 65535) + ' more glyph space!')
     stword.sort(key=lambda x:len(x[0]), reverse = True)
-    font.addLookup('stmult', 'gsub_multiple', None, (("liga",(("hani",("dflt")),)),), 'stchar')
-    font.addLookup('stliga', 'gsub_ligature', None, (("liga",(("hani",("dflt")),)),))
+    font.addLookup('stmult', 'gsub_multiple', None, (("ccmp",(("hani",("dflt")),)),), 'stchar')
+    font.addLookup('stliga', 'gsub_ligature', None, (("ccmp",(("hani",("dflt")),)),))
     i, j, tlen, wlen = 0, 0, 0, len(stword[0][0])
     font.addLookupSubtable('stmult', 'stmult0')
     font.addLookupSubtable('stliga', 'stliga0')
