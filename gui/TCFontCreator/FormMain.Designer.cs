@@ -1,4 +1,4 @@
-namespace TCFontCreator
+﻿namespace TCFontCreator
 {
     partial class FormMain
     {
@@ -51,16 +51,17 @@ namespace TCFontCreator
             this.checkBoxYitizi = new System.Windows.Forms.CheckBox();
             this.panel1 = new System.Windows.Forms.Panel();
             this.panelMain = new System.Windows.Forms.Panel();
-            this.comboBoxMulti = new System.Windows.Forms.ComboBox();
+            this.linkLabel1 = new System.Windows.Forms.LinkLabel();
+            this.panelTC = new System.Windows.Forms.Panel();
+            this.label1 = new System.Windows.Forms.Label();
+            this.comboBoxVar = new System.Windows.Forms.ComboBox();
             this.labelMilti = new System.Windows.Forms.Label();
+            this.comboBoxMulti = new System.Windows.Forms.ComboBox();
             this.linkLabelOut = new System.Windows.Forms.LinkLabel();
             this.linkLabelIn2 = new System.Windows.Forms.LinkLabel();
             this.linkLabelIn = new System.Windows.Forms.LinkLabel();
             this.labeli2 = new System.Windows.Forms.Label();
             this.textBoxIn2 = new System.Windows.Forms.TextBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.comboBoxVar = new System.Windows.Forms.ComboBox();
-            this.panelTC = new System.Windows.Forms.Panel();
             this.panel1.SuspendLayout();
             this.panelMain.SuspendLayout();
             this.panelTC.SuspendLayout();
@@ -81,11 +82,12 @@ namespace TCFontCreator
             this.comboBoxSys.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBoxSys.FormattingEnabled = true;
             this.comboBoxSys.Items.AddRange(new object[] {
-            "生成繁體字體",
+            "生成簡轉繁字體",
             "使用同義字補全字庫",
             "合併簡體 GB2312、繁體 GB2312",
             "合併字體 1、字體 2",
-            "日本新字轉爲傳承正字(僅日本字體)"});
+            "日本新字轉爲傳承正字(僅日本字體)",
+            "生成繁轉簡字體"});
             this.comboBoxSys.Location = new System.Drawing.Point(77, 9);
             this.comboBoxSys.Name = "comboBoxSys";
             this.comboBoxSys.Size = new System.Drawing.Size(292, 20);
@@ -277,6 +279,7 @@ namespace TCFontCreator
             // 
             // panelMain
             // 
+            this.panelMain.Controls.Add(this.linkLabel1);
             this.panelMain.Controls.Add(this.panelTC);
             this.panelMain.Controls.Add(this.linkLabelOut);
             this.panelMain.Controls.Add(this.linkLabelIn2);
@@ -300,6 +303,60 @@ namespace TCFontCreator
             this.panelMain.Size = new System.Drawing.Size(478, 327);
             this.panelMain.TabIndex = 18;
             // 
+            // linkLabel1
+            // 
+            this.linkLabel1.AutoSize = true;
+            this.linkLabel1.Location = new System.Drawing.Point(11, 307);
+            this.linkLabel1.Name = "linkLabel1";
+            this.linkLabel1.Size = new System.Drawing.Size(53, 12);
+            this.linkLabel1.TabIndex = 22;
+            this.linkLabel1.TabStop = true;
+            this.linkLabel1.Text = "項目主頁";
+            this.linkLabel1.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.LinkLabel1_LinkClicked);
+            // 
+            // panelTC
+            // 
+            this.panelTC.Controls.Add(this.label1);
+            this.panelTC.Controls.Add(this.comboBoxVar);
+            this.panelTC.Controls.Add(this.labelMilti);
+            this.panelTC.Controls.Add(this.comboBoxMulti);
+            this.panelTC.Location = new System.Drawing.Point(13, 148);
+            this.panelTC.Name = "panelTC";
+            this.panelTC.Size = new System.Drawing.Size(417, 63);
+            this.panelTC.TabIndex = 21;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(5, 7);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(113, 12);
+            this.label1.TabIndex = 19;
+            this.label1.Text = "選擇要使用的異體字";
+            // 
+            // comboBoxVar
+            // 
+            this.comboBoxVar.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxVar.FormattingEnabled = true;
+            this.comboBoxVar.Items.AddRange(new object[] {
+            "默認",
+            "臺灣",
+            "香港",
+            "舊字形"});
+            this.comboBoxVar.Location = new System.Drawing.Point(125, 3);
+            this.comboBoxVar.Name = "comboBoxVar";
+            this.comboBoxVar.Size = new System.Drawing.Size(205, 20);
+            this.comboBoxVar.TabIndex = 20;
+            // 
+            // labelMilti
+            // 
+            this.labelMilti.AutoSize = true;
+            this.labelMilti.Location = new System.Drawing.Point(4, 37);
+            this.labelMilti.Name = "labelMilti";
+            this.labelMilti.Size = new System.Drawing.Size(113, 12);
+            this.labelMilti.TabIndex = 19;
+            this.labelMilti.Text = "對簡繁一對多的處理";
+            // 
             // comboBoxMulti
             // 
             this.comboBoxMulti.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
@@ -312,15 +369,6 @@ namespace TCFontCreator
             this.comboBoxMulti.Name = "comboBoxMulti";
             this.comboBoxMulti.Size = new System.Drawing.Size(205, 20);
             this.comboBoxMulti.TabIndex = 20;
-            // 
-            // labelMilti
-            // 
-            this.labelMilti.AutoSize = true;
-            this.labelMilti.Location = new System.Drawing.Point(4, 37);
-            this.labelMilti.Name = "labelMilti";
-            this.labelMilti.Size = new System.Drawing.Size(113, 12);
-            this.labelMilti.TabIndex = 19;
-            this.labelMilti.Text = "對簡繁一對多的處理";
             // 
             // linkLabelOut
             // 
@@ -373,40 +421,6 @@ namespace TCFontCreator
             this.textBoxIn2.TabIndex = 1;
             this.textBoxIn2.DragDrop += new System.Windows.Forms.DragEventHandler(this.TextBox_DragDrop);
             this.textBoxIn2.DragEnter += new System.Windows.Forms.DragEventHandler(this.TextBox_DragEnter);
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(5, 7);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(113, 12);
-            this.label1.TabIndex = 19;
-            this.label1.Text = "選擇要使用的異體字";
-            // 
-            // comboBoxVar
-            // 
-            this.comboBoxVar.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxVar.FormattingEnabled = true;
-            this.comboBoxVar.Items.AddRange(new object[] {
-            "默認",
-            "臺灣",
-            "香港",
-            "舊字形"});
-            this.comboBoxVar.Location = new System.Drawing.Point(125, 3);
-            this.comboBoxVar.Name = "comboBoxVar";
-            this.comboBoxVar.Size = new System.Drawing.Size(205, 20);
-            this.comboBoxVar.TabIndex = 20;
-            // 
-            // panelTC
-            // 
-            this.panelTC.Controls.Add(this.label1);
-            this.panelTC.Controls.Add(this.comboBoxVar);
-            this.panelTC.Controls.Add(this.labelMilti);
-            this.panelTC.Controls.Add(this.comboBoxMulti);
-            this.panelTC.Location = new System.Drawing.Point(13, 148);
-            this.panelTC.Name = "panelTC";
-            this.panelTC.Size = new System.Drawing.Size(417, 63);
-            this.panelTC.TabIndex = 21;
             // 
             // FormMain
             // 
@@ -468,6 +482,7 @@ namespace TCFontCreator
         private System.Windows.Forms.Panel panelTC;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ComboBox comboBoxVar;
+        private System.Windows.Forms.LinkLabel linkLabel1;
     }
 }
 

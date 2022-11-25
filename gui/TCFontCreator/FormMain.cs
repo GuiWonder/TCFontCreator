@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Windows.Forms;
 
 namespace TCFontCreator
@@ -123,7 +123,7 @@ namespace TCFontCreator
             switch (comboBoxSys.SelectedIndex)
             {
                 case 0:
-                    stmode = "tc";
+                    stmode = "st";
                     break;
                 case 1:
                     stmode = "var";
@@ -137,27 +137,30 @@ namespace TCFontCreator
                 case 4:
                     stmode = "jt";
                     break;
+                case 5:
+                    stmode = "ts";
+                    break;
                 default:
-                    stmode = "tc";
+                    stmode = "st";
                     break;
             }
-            if (stmode == "tc")
+            if (stmode == "st")
             {
-                if (comboBoxVar.SelectedIndex==1)
+                if (comboBoxVar.SelectedIndex == 1)
                 {
                     stmode += "tw";
                 }
-                else if (comboBoxVar.SelectedIndex==2)
+                else if (comboBoxVar.SelectedIndex == 2)
                 {
                     stmode += "hk";
                 }
-                else if (comboBoxVar.SelectedIndex==3)
+                else if (comboBoxVar.SelectedIndex == 3)
                 {
-                    stmode += "t";
+                    stmode += "cl";
                 }
             }
             SetExec();
-            if ((!System.IO.File.Exists(filein)) || (!System.IO.File.Exists(filein2) && (stmode == "sat"|| stmode == "faf")) || string.IsNullOrWhiteSpace(fileout))
+            if ((!System.IO.File.Exists(filein)) || (!System.IO.File.Exists(filein2) && (stmode == "sat" || stmode == "faf")) || string.IsNullOrWhiteSpace(fileout))
             {
                 MessageBox.Show(this, "文件無效，請重新選擇。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
@@ -278,7 +281,7 @@ namespace TCFontCreator
 
         private void P_ErrorDataReceived(object sender, System.Diagnostics.DataReceivedEventArgs e)
         {
-            if (!string.IsNullOrWhiteSpace(e.Data) && (e.Data.Contains("Error") || e.Data.Contains("ERROR") || e.Data.Contains("[Errno")))
+            if (!string.IsNullOrWhiteSpace(e.Data) && (e.Data.Contains("Error") || e.Data.Contains("ERROR") || e.Data.Contains("[Errno")) && !e.Data.Contains("raise"))
             {
                 err += e.Data + "\r\n";
             }
@@ -307,7 +310,6 @@ namespace TCFontCreator
         {
             checkBoxYitizi.Enabled = comboBoxSys.SelectedIndex != 1;
             panelTC.Enabled = comboBoxSys.SelectedIndex == 0;
-            //labelMilti.Enabled = comboBoxSys.SelectedIndex < 4;
             labeli2.Enabled = comboBoxSys.SelectedIndex == 2 || comboBoxSys.SelectedIndex == 3;
             textBoxIn2.Enabled = comboBoxSys.SelectedIndex == 2 || comboBoxSys.SelectedIndex == 3;
             linkLabelIn2.Enabled = comboBoxSys.SelectedIndex == 2 || comboBoxSys.SelectedIndex == 3;
@@ -335,6 +337,11 @@ namespace TCFontCreator
             {
                 textBoxOut.Text = saveFileDialog1.FileName;
             }
+        }
+
+        private void LinkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            System.Diagnostics.Process.Start("https://github.com/GuiWonder/TCFontCreator");
         }
     }
 }
