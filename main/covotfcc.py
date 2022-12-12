@@ -206,9 +206,7 @@ def lookuptable():
 	for table in font['GSUB']['languages'].values():
 		table['features'].insert(0, 'ccmp_st')
 	font['GSUB']['features']['ccmp_st'] = ['wordsc', 'stchars', 'wordtc']
-	font['GSUB']['lookupOrder'].append('wordsc')
-	font['GSUB']['lookupOrder'].append('stchars')
-	font['GSUB']['lookupOrder'].append('wordtc')
+	font['GSUB']['lookupOrder']=['wordsc', 'stchars', 'wordtc']+font['GSUB']['lookupOrder']
 	if tabch=='ts':
 		build_char_tableTS()
 	else:
