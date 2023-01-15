@@ -15,14 +15,9 @@ namespace TCFontCreator
         private string exeffpy;
         private string exepy;
         private string path;
-        private string filein;
-        private string filein2;
         private string fileout;
-        private string stmode;
-        private string[] fontinfo;
+        private string args;
         private bool otcff;
-        private bool ytz;
-        private string multi;
         private System.Threading.Thread thRun;
         private string err;
         private string outinfo;
@@ -100,26 +95,11 @@ namespace TCFontCreator
         private void ButtonStart_Click(object sender, EventArgs e)
         {
             path = AppDomain.CurrentDomain.BaseDirectory;
-            filein = textBoxIn.Text.Trim();
-            filein2 = textBoxIn2.Text.Trim();
+            string filein = textBoxIn.Text.Trim();
+            string filein2 = textBoxIn2.Text.Trim();
             fileout = textBoxOut.Text.Trim();
             otcff = comboBoxApp.SelectedIndex == 0;
-            ytz = checkBoxYitizi.Checked;
-            switch (comboBoxMulti.SelectedIndex)
-            {
-                case 0:
-                    multi = "no";
-                    break;
-                case 1:
-                    multi = "single";
-                    break;
-                case 2:
-                    multi = "multi";
-                    break;
-                default:
-                    multi = "single";
-                    break;
-            }
+            string stmode;
             switch (comboBoxSys.SelectedIndex)
             {
                 case 0:
@@ -158,6 +138,14 @@ namespace TCFontCreator
                 {
                     stmode += "cl";
                 }
+                if (comboBoxMulti.SelectedIndex == 1)
+                {
+                    stmode += ".s";
+                }
+                else if (comboBoxMulti.SelectedIndex == 2)
+                {
+                    stmode += ".m";
+                }
             }
             SetExec();
             if ((!System.IO.File.Exists(filein)) || (!System.IO.File.Exists(filein2) && (stmode == "sat" || stmode == "faf")) || string.IsNullOrWhiteSpace(fileout))
@@ -190,18 +178,43 @@ namespace TCFontCreator
                 MessageBox.Show(this, "未能找到 FontForge,請在 appdata 文件中設置 fontforge.exe 的路徑。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            if (checkBoxInfo.Checked && (string.IsNullOrWhiteSpace(textBoxName.Text) || string.IsNullOrWhiteSpace(textBoxChName.Text)))
+            if (checkBoxInfo.Checked && (string.IsNullOrWhiteSpace(textBoxName.Text) || string.IsNullOrWhiteSpace(textBoxTCName.Text)))
             {
                 MessageBox.Show(this, "您需要輸入字體名稱。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             if (stmode == "sat" || stmode == "faf")
             {
-                filein += "|" + filein2;
+                filein = $"-i \"{filein}\" -i2 \"{filein2}\"";
             }
-            fontinfo = checkBoxInfo.Checked
-                ? (new string[] { textBoxName.Text.Trim(), textBoxChName.Text.Trim(), textBoxPSName.Text.Trim(), textBoxVersi.Text.Trim() })
-                : (new string[] { "", "", "", "" });
+            else
+            {
+                filein = $"-i \"{filein}\"";
+            }
+            string pyfile = otcff ? path + "converto.py" : path + "convertf.py";
+            pyfile = pyfile.Replace('\\', '/');
+            args = $"\"{pyfile}\" {filein} -o \"{fileout}\" -wk {stmode}";
+            if (stmode != "var" && checkBoxYitizi.Checked)
+            {
+                args += " -v";
+            }
+            if (checkBoxInfo.Checked && !string.IsNullOrWhiteSpace(textBoxName.Text))
+            {
+                args += $" -n \"{textBoxName.Text}\"";
+                if (!string.IsNullOrWhiteSpace(textBoxTCName.Text))
+                {
+                    args += $" -ntc \"{textBoxTCName.Text}\"";
+                }
+                if (!string.IsNullOrWhiteSpace(textBoxSCName.Text))
+                {
+                    args += $" -nsc \"{textBoxSCName.Text}\"";
+                }
+                if (!string.IsNullOrWhiteSpace(textBoxVersi.Text))
+                {
+                    args += $" -vn \"{textBoxVersi.Text}\"";
+                }
+            }
+
             panelMain.Enabled = false;
             Cursor = Cursors.WaitCursor;
             Text = "正在處理，請耐心等待...";
@@ -214,22 +227,16 @@ namespace TCFontCreator
 
         private void ThRun()
         {
-            string enname = fontinfo[0];
-            string chname = fontinfo[1];
-            string psname = string.IsNullOrWhiteSpace(fontinfo[2]) ? enname.Replace(" ", "") : fontinfo[2];
-            string version = fontinfo[3];
             using (System.Diagnostics.Process p = new System.Diagnostics.Process())
             {
                 p.StartInfo.FileName = "cmd";
                 string pyfile = otcff ? path + "covotfcc.py" : path + "covff.py";
-                pyfile = pyfile.Replace('\\', '/');
-                filein = filein.Replace('\\', '/');
                 fileout = fileout.Replace('\\', '/');
                 string bin = exeffpy.Substring(0, exeffpy.LastIndexOf('/'));
                 string ffpath = bin.Substring(0, bin.LastIndexOf('/'));
                 string arg1 = (otcff && exeffpy != exepy) ? "" : $"set \"PYTHONHOME={ffpath}\"&";
                 string runexe = (otcff && exeffpy != exepy) ? exepy : exeffpy;
-                string arg2 = $"\"{runexe}\" \"{pyfile}\" \"{filein}\" \"{fileout}\" \"{stmode}\" \"{ytz}\" \"{multi}\" \"{enname}\" \"{chname}\" \"{psname}\" \"{version}\"";
+                string arg2 = $"\"{runexe}\" {args}";
                 string arg3 = showCMD ? "" : "&exit";
                 p.StartInfo.UseShellExecute = false;
                 p.StartInfo.CreateNoWindow = !showCMD;
@@ -253,11 +260,22 @@ namespace TCFontCreator
                 panelMain.Enabled = true;
                 Cursor = Cursors.Default;
                 Text = " 中文字體簡繁處理工具";
-                if (string.IsNullOrWhiteSpace(err) && System.IO.File.Exists(fileout))
+                if (System.IO.File.Exists(fileout))
                 {
                     if (outinfo.EndsWith("Finished!"))
                     {
-                        MessageBox.Show(this, "成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        if (string.IsNullOrWhiteSpace(err))
+                        {
+                            MessageBox.Show(this, "成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        else
+                        {
+                            MessageBox.Show(this, "出現錯誤！\r\n" + err, "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                    else if (!string.IsNullOrWhiteSpace(err))
+                    {
+                        MessageBox.Show(this, "失敗！\r\n" + err, "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                     else
                     {
@@ -267,6 +285,7 @@ namespace TCFontCreator
                 else
                 {
                     MessageBox.Show(this, "失敗！\r\n" + err, "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
                 }
             }));
         }

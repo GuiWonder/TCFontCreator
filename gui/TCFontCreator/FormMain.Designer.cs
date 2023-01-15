@@ -42,8 +42,8 @@
             this.textBoxName = new System.Windows.Forms.TextBox();
             this.textBoxVersi = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
-            this.textBoxChName = new System.Windows.Forms.TextBox();
-            this.textBoxPSName = new System.Windows.Forms.TextBox();
+            this.textBoxTCName = new System.Windows.Forms.TextBox();
+            this.textBoxSCName = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
@@ -85,8 +85,8 @@
             "生成簡轉繁字體",
             "使用同義字補全字庫",
             "合併簡體 GB2312、繁體 GB2312",
-            "合併字體 1、字體 2",
-            "日本新字轉爲傳承正字(僅日本字體)",
+            "合併字體1、字體2",
+            "日本字體新字形轉爲舊字形(僅部分字體)",
             "生成繁轉簡字體"});
             this.comboBoxSys.Location = new System.Drawing.Point(77, 9);
             this.comboBoxSys.Name = "comboBoxSys";
@@ -164,11 +164,11 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(4, 59);
+            this.label5.Location = new System.Drawing.Point(16, 59);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(89, 12);
+            this.label5.Size = new System.Drawing.Size(77, 12);
             this.label5.TabIndex = 1;
-            this.label5.Text = "PostScript名稱";
+            this.label5.Text = "中文名称(简)";
             // 
             // textBoxName
             // 
@@ -189,27 +189,27 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(28, 32);
+            this.label4.Location = new System.Drawing.Point(16, 32);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(65, 12);
+            this.label4.Size = new System.Drawing.Size(77, 12);
             this.label4.TabIndex = 1;
-            this.label4.Text = "* 中文名稱";
+            this.label4.Text = "中文名稱(繁)";
             // 
-            // textBoxChName
+            // textBoxTCName
             // 
-            this.textBoxChName.Location = new System.Drawing.Point(99, 29);
-            this.textBoxChName.Name = "textBoxChName";
-            this.textBoxChName.Size = new System.Drawing.Size(133, 21);
-            this.textBoxChName.TabIndex = 7;
-            this.textBoxChName.Text = "我的新字體";
+            this.textBoxTCName.Location = new System.Drawing.Point(99, 29);
+            this.textBoxTCName.Name = "textBoxTCName";
+            this.textBoxTCName.Size = new System.Drawing.Size(133, 21);
+            this.textBoxTCName.TabIndex = 7;
+            this.textBoxTCName.Text = "我的新字體";
             // 
-            // textBoxPSName
+            // textBoxSCName
             // 
-            this.textBoxPSName.Location = new System.Drawing.Point(99, 56);
-            this.textBoxPSName.Name = "textBoxPSName";
-            this.textBoxPSName.Size = new System.Drawing.Size(133, 21);
-            this.textBoxPSName.TabIndex = 8;
-            this.textBoxPSName.Text = "MyNewFont";
+            this.textBoxSCName.Location = new System.Drawing.Point(99, 56);
+            this.textBoxSCName.Name = "textBoxSCName";
+            this.textBoxSCName.Size = new System.Drawing.Size(133, 21);
+            this.textBoxSCName.TabIndex = 8;
+            this.textBoxSCName.Text = "我的新字体";
             // 
             // label6
             // 
@@ -269,9 +269,9 @@
             this.panel1.Controls.Add(this.textBoxName);
             this.panel1.Controls.Add(this.label6);
             this.panel1.Controls.Add(this.textBoxVersi);
-            this.panel1.Controls.Add(this.textBoxPSName);
+            this.panel1.Controls.Add(this.textBoxSCName);
             this.panel1.Controls.Add(this.label4);
-            this.panel1.Controls.Add(this.textBoxChName);
+            this.panel1.Controls.Add(this.textBoxTCName);
             this.panel1.Location = new System.Drawing.Point(110, 215);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(246, 105);
@@ -461,8 +461,8 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.TextBox textBoxPSName;
-        private System.Windows.Forms.TextBox textBoxChName;
+        private System.Windows.Forms.TextBox textBoxSCName;
+        private System.Windows.Forms.TextBox textBoxTCName;
         private System.Windows.Forms.TextBox textBoxName;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.TextBox textBoxVersi;
