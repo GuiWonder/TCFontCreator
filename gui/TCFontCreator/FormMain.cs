@@ -178,7 +178,7 @@ namespace TCFontCreator
                 MessageBox.Show(this, "未能找到 FontForge,請在 appdata 文件中設置 fontforge.exe 的路徑。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            if (checkBoxInfo.Checked && (string.IsNullOrWhiteSpace(textBoxName.Text) || string.IsNullOrWhiteSpace(textBoxTCName.Text)))
+            if (checkBoxInfo.Checked && string.IsNullOrWhiteSpace(textBoxName.Text))
             {
                 MessageBox.Show(this, "您需要輸入字體名稱。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;

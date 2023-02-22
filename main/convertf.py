@@ -1,9 +1,7 @@
 import sys, os
 import fontforge
 from itertools import chain
-
 pydir = os.path.abspath(os.path.dirname(__file__))
-
 def getmulchar(allch):
 	s = str()
 	with open(os.path.join(pydir, 'datas/Multi.txt'), 'r', encoding = 'utf-8') as f:
@@ -16,7 +14,6 @@ def getmulchar(allch):
 			elif not line.startswith('#'):
 				s += line
 	return s
-
 def addvariants(font):
 	print('Processing font variants...')
 	code_glyph, glyph_codes=getallcodesname(font)
@@ -36,7 +33,6 @@ def addvariants(font):
 					chcode = ord(ch1)
 					if chcode not in code_glyph:
 						mvcodetocode(font, code_glyph, glyph_codes, chcode, codein)
-
 def transforme(font, tabch, mulchar):
 	print('Processing Chinese Chars...')
 	code_glyph, glyph_codes=getallcodesname(font)
@@ -48,7 +44,6 @@ def transforme(font, tabch, mulchar):
 			s, t = lnst[0].strip(), lnst[1].strip()
 			if s and t and s != t and (s not in mulchar):
 				mvcodetocode(font, code_glyph, glyph_codes, ord(s), ord(t))
-
 def mvcodetocode(font, code_glyph, glyph_codes, uni, unito):
 	if unito not in code_glyph:
 		return
@@ -59,7 +54,6 @@ def mvcodetocode(font, code_glyph, glyph_codes, uni, unito):
 			return
 		rmcode(font, code_glyph, glyph_codes, gf, uni)
 	adduni(font, code_glyph, glyph_codes, gto, uni)
-
 def rmcode(font, code_glyph, glyph_codes, gly, uni):
 	glyph_codes[gly].remove(uni)
 	del code_glyph[uni]
@@ -86,7 +80,6 @@ def rmcode(font, code_glyph, glyph_codes, gly, uni):
 		gl.altuni = tuple(lu)
 	else:
 		gl.altuni = None
-
 def adduni(font, code_glyph, glyph_codes, gly, uni):
 	glyph_codes[gly].append(uni)
 	code_glyph[uni]=gly
@@ -99,7 +92,6 @@ def adduni(font, code_glyph, glyph_codes, gly, uni):
 				lu.append(alt)
 		lu.append((uni, -1, 0))
 		font[gly].altuni = tuple(lu)
-
 def removeglyhps(font):
 	print('Removing glyghs...')
 	code_glyph, glyph_codes=getallcodesname(font)
@@ -137,7 +129,6 @@ def removeglyhps(font):
 		if gls.glyphname not in useg:
 			gls.removePosSub('*')
 			font.removeGlyph(gls)
-
 def ForCharslookups(font, tabch, mulchar):
 	code_glyph, glyph_codes=getallcodesname(font)
 	font.addLookup('stchar', 'gsub_single', None, (("ccmp",(("hani",("dflt")),)),))
@@ -160,7 +151,6 @@ def ForCharslookups(font, tabch, mulchar):
 					gnsc = code_glyph[ord(s)]
 					if gntc != gnsc:
 						font[gnsc].addPosSub('stchar1', gntc)
-
 def ForWordslookups(font, tabch):
 	code_glyph, glyph_codes=getallcodesname(font)
 	phrases='datas/STPhrases.txt'
@@ -202,7 +192,6 @@ def ForWordslookups(font, tabch):
 			font.addLookupSubtable('stliga', 'stliga' + str(j), 'stliga' + str(j - 1))
 		i += 1
 		addlookupsword(font, code_glyph, wd[1], wd[0], str(j), str(i))
-
 def addlookupsword(font, code_glyph, tcword, scword, j, i):
 	newgname = 'ligast' + i
 	wdin = list()
@@ -226,7 +215,6 @@ def addlookupsword(font, code_glyph, tcword, scword, j, i):
 	newg.vwidth = 800
 	newg.addPosSub('stliga' + j, tuple(wdin))
 	newg.addPosSub('stmult' + j, tuple(wdout))
-
 def getallcodesname(thfont):
 	c_g = dict()
 	g_c=dict()
@@ -241,7 +229,6 @@ def getallcodesname(thfont):
 					c_g[uni[0]] = gls.glyphname
 					g_c[gls.glyphname].append(uni[0])
 	return c_g, g_c
-
 def fontaddfont(font, fin2, gb=False):
 	print('Loading font2...')
 	code_glyph, glyph_codes=getallcodesname(font)
@@ -306,7 +293,6 @@ def fontaddfont(font, fin2, gb=False):
 	del glyph_codes2
 	del code_glyph2
 	font2.close()
-
 def jptotr(font):
 	print('Processing Japanese Kanji...')
 	code_glyph, glyph_codes=getallcodesname(font)
@@ -328,13 +314,11 @@ def jptotr(font):
 		raise RuntimeError('This font is not applicable! 此功能不適用這個字體。')
 	for t1 in ltb:
 		unimvtogly(font, code_glyph, glyph_codes, t1[1], t1[0])
-
 def unimvtogly(font, code_glyph, glyph_codes, uni, gly):
 	if code_glyph[uni]==gly:
 		return
 	rmcode(font, code_glyph, glyph_codes, code_glyph[uni], uni)
 	adduni(font, code_glyph, glyph_codes, gly, uni)
-
 def stts(font, wkon, vr=False):
 	mulp=str()
 	tabch=wkon.split('.')[0]
@@ -352,7 +336,6 @@ def stts(font, wkon, vr=False):
 		print('Adding lookups...')
 		ForCharslookups(font, tabch, mulchar)
 		ForWordslookups(font, tabch)
-
 def setnm(font, ennm, tcnm='', scnm='', versn=''):
 	print('Processing font name...')
 	wt=str()
@@ -392,7 +375,6 @@ def setnm(font, ennm, tcnm='', scnm='', versn=''):
 	psName=fmlName.replace(' ', '')+'-'+wt+itm
 	uniqID=versn+';'+psName
 	if wt=='Bold':
-	#if wt in ('Regular', 'Bold') and not (isit and wt=='Regular'):
 		fullName=ftName+' '+wt+itml
 		fullNamesc=ftNamesc+' '+wt+itml
 		fullNametc=ftNametc+' '+wt+itml
@@ -402,44 +384,43 @@ def setnm(font, ennm, tcnm='', scnm='', versn=''):
 		fullNametc=ftNametc+itml
 	newname=list()
 	newname+=[
-		('English (US)', 'Family', ftName), 
-		('English (US)', 'SubFamily', subfamily), 
-		('English (US)', 'UniqueID', uniqID), 
-		('English (US)', 'Fullname', fullName), 
-		('English (US)', 'Version', 'Version '+versn), 
-		('English (US)', 'PostScriptName', psName), 
+		('English (US)', 'Family', ftName),
+		('English (US)', 'SubFamily', subfamily),
+		('English (US)', 'UniqueID', uniqID),
+		('English (US)', 'Fullname', fullName),
+		('English (US)', 'Version', 'Version '+versn),
+		('English (US)', 'PostScriptName', psName),
 	]
 	if wt not in ('Regular', 'Bold'):
 		newname+=[
-			('English (US)', 'Preferred Family', fmlName), 
-			('English (US)', 'Preferred Styles', wt+itml), 
+			('English (US)', 'Preferred Family', fmlName),
+			('English (US)', 'Preferred Styles', wt+itml),
 		]
 	if tcnm:
 		for lang in ('Chinese (Taiwan)', 'Chinese (Hong Kong)', 'Chinese (Macau)'):
 			newname+=[
-			(lang, 'Family', ftNametc), 
-			(lang, 'SubFamily', subfamily), 
-			(lang, 'Fullname', fullNametc), 
+			(lang, 'Family', ftNametc),
+			(lang, 'SubFamily', subfamily),
+			(lang, 'Fullname', fullNametc),
 			]
 			if wt not in ('Regular', 'Bold'):
 				newname+=[
-					(lang, 'Preferred Family', tcnm), 
-					(lang, 'Preferred Styles', wt+itml), 
+					(lang, 'Preferred Family', tcnm),
+					(lang, 'Preferred Styles', wt+itml),
 				]
 	if scnm:
 		for lang in ('Chinese (PRC)', 'Chinese (Singapore)'):
 			newname+=[
-			(lang, 'Family', ftNamesc), 
-			(lang, 'SubFamily', subfamily), 
-			(lang, 'Fullname', fullNamesc), 
+			(lang, 'Family', ftNamesc),
+			(lang, 'SubFamily', subfamily),
+			(lang, 'Fullname', fullNamesc),
 			]
 			if wt not in ('Regular', 'Bold'):
 				newname+=[
-					(lang, 'Preferred Family', scnm), 
-					(lang, 'Preferred Styles', wt+itml), 
+					(lang, 'Preferred Family', scnm),
+					(lang, 'Preferred Styles', wt+itml),
 				]
 	font.sfnt_names=tuple(newname)
-
 def parseArgs(args):
 	nwk=dict()
 	nwk['inFilePath'], nwk['outFilePath'], nwk['outFilePath2'], nwk['enN'], nwk['scN'], nwk['tcN'], nwk['vsN']=(str() for i in range(7))
@@ -486,7 +467,6 @@ def parseArgs(args):
 	if not nwk['enN'] and (nwk['tcN'] or nwk['scN'] or nwk['vsN']):
 		raise RuntimeError("You must specify English name first.")
 	return nwk
-
 def run(args):
 	wkfl=parseArgs(args)
 	print('Loading font...')
@@ -508,9 +488,7 @@ def run(args):
 	print('Saving font...')
 	infont.generate(wkfl['outFilePath'])
 	print('Finished!')
-
 def main():
 	run(sys.argv[1:])
-
 if __name__ == "__main__":
 	main()

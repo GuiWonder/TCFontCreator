@@ -1,6 +1,5 @@
 import os, sys, json, subprocess, platform, tempfile, gc
 from itertools import chain
-
 pydir = os.path.abspath(os.path.dirname(__file__))
 otfccdump = os.path.join(pydir, 'otfcc/otfccdump')
 otfccbuild = os.path.join(pydir, 'otfcc/otfccbuild')
@@ -10,7 +9,6 @@ if platform.system() in ('Mac', 'Darwin'):
 if platform.system() == 'Linux':
 	otfccdump += '2'
 	otfccbuild += '2'
-
 def getmulchar(allch):
 	s = str()
 	with open(os.path.join(pydir, 'datas/Multi.txt'), 'r', encoding = 'utf-8') as f:
@@ -23,7 +21,6 @@ def getmulchar(allch):
 			elif not line.startswith('#'):
 				s += line
 	return s
-
 def addvariants(font):
 	print('Processing font variants...')
 	with open(os.path.join(pydir, 'datas/Variants.txt'),'r',encoding = 'utf-8') as f:
@@ -40,7 +37,6 @@ def addvariants(font):
 				for ch1 in vari:
 					if str(ord(ch1)) not in font['cmap']:
 						font['cmap'][str(ord(ch1))] = gtgly
-
 def transforme(font, tabch, mulchar):
 	print('Processing Chinese Chars...')
 	with open(os.path.join(pydir, f'datas/Chars_{tabch}.txt'),'r',encoding = 'utf-8') as f:
@@ -51,7 +47,6 @@ def transforme(font, tabch, mulchar):
 			s, t = lnst[0].strip(), lnst[1].strip()
 			if s and t and s != t and (s not in mulchar) and str(ord(t)) in font['cmap']:
 				font['cmap'][str(ord(s))] = font['cmap'][str(ord(t))]
-
 def removeglyhps(font, sp=False):
 	print('Removing glyghs...')
 	usedg=set()
@@ -96,7 +91,7 @@ def removeglyhps(font, sp=False):
 						for item in set(subtable.keys()):
 							if item in usedg:
 								usedg.update(set(subtable[item]))
-				elif lookup['type'] == 'gsub_ligature': 
+				elif lookup['type'] == 'gsub_ligature':
 					for subtable in lookup['subtables']:
 						for item in subtable['substitutions']:
 							if set(item['from']).issubset(usedg):
@@ -129,7 +124,7 @@ def removeglyhps(font, sp=False):
 					for item in set(subtable.keys()):
 						if item in unusegl or len(set(subtable[item]).intersection(unusegl))>0:
 							del subtable[item]
-			elif lookup['type'] == 'gsub_ligature': 
+			elif lookup['type'] == 'gsub_ligature':
 				for subtable in lookup['subtables']:
 					s1=list()
 					for item in subtable['substitutions']:
@@ -163,15 +158,14 @@ def removeglyhps(font, sp=False):
 					if len(gs.intersection(unusegl))<1:
 						nsb.append(subtable)
 				lookup['subtables']=nsb
-
 def lookuptable(font, chartb, mulchar):
 	print('Building lookups...')
 	if not 'GSUB' in font:
 		print('Creating empty GSUB!')
 		font['GSUB'] = {
-			'languages': {'hani_DFLT': {'features': []}}, 
-			'features': {}, 
-			'lookups': {}, 
+			'languages': {'hani_DFLT': {'features': []}},
+			'features': {},
+			'lookups': {},
 			'lookupOrder': []
 		}
 	if not 'hani_DFLT' in font['GSUB']['languages']:
@@ -182,7 +176,6 @@ def lookuptable(font, chartb, mulchar):
 	font['GSUB']['lookupOrder']=['wordsc', 'stchars', 'wordtc']+font['GSUB']['lookupOrder']
 	lkpsch(font, chartb, mulchar)
 	lkpswd(font, chartb)
-
 def lkpsch(font, tabch, mulchar):
 	kt = dict()
 	if tabch=='ts':
@@ -200,7 +193,6 @@ def lkpsch(font, tabch, mulchar):
 				if s and t and s != t and str(ord(s)) in font['cmap'] and str(ord(t)) in font['cmap']:
 					kt[font['cmap'][str(ord(s))]] = font['cmap'][str(ord(t))]
 	font['GSUB']['lookups']['stchars'] = {'type': 'gsub_single', 'flags': {}, 'subtables': [kt]}
-
 def lkpswd(font, stcv):
 	phrases='datas/STPhrases.txt'
 	if stcv=='ts':
@@ -222,7 +214,6 @@ def lkpswd(font, stcv):
 		raise RuntimeError('Not enough glyph space! You need ' + str(nd) + ' more glyph space!')
 	if len(stword) > 0:
 		addlookupword(font, stword)
-
 def addlookupword(font, stword):
 	stword.sort(key=lambda x:len(x[0]), reverse = True)
 	subtablesl = list()
@@ -240,8 +231,8 @@ def addlookupword(font, stword):
 			wdt.append(font['cmap'][str(ord(t1))])
 		newgname = 'ligast' + str(i)
 		font['glyf'][newgname] = {
-									'advanceWidth': 0, 
-									'advanceHeight': 1000, 
+									'advanceWidth': 0,
+									'advanceHeight': 1000,
 									'verticalOrigin': 880
 								 }
 		font['glyph_order'].append(newgname)
@@ -271,12 +262,11 @@ def addlookupword(font, stword):
 											'flags': {},
 											'subtables': subtablesm
 										}
-
 def fontaddfont(font, fin2, gb=False):
 	print('Loading font2...')
 	font2 = json.loads(subprocess.check_output((otfccdump, '--no-bom', fin2)).decode("utf-8", "ignore"))
 	if ('CFF_' in font)!=('CFF_' in font2):
-		raise RuntimeError('Unable to merge fonts in different formats! 無法合併不同格式的字體。')
+		raise RuntimeError('Unable to merge fonts in different formats!')
 	if gb:
 		print('Adding font2 codes...')
 		with open(os.path.join(pydir, 'datas/Variants.txt'),'r',encoding = 'utf-8') as f:
@@ -319,7 +309,9 @@ def fontaddfont(font, fin2, gb=False):
 				font['cmap'][cdpt] = newnm1
 	del f2glcode
 	del font2
-
+	gc.collect()
+	if len(font['glyf'])>65535: removeglyhps(font)
+	assert len(font['glyf'])<65536, 'The number of glyphs is over 65535.'
 def sclglyph(glyph, scl):
 	glyph['advanceWidth'] = round(glyph['advanceWidth'] * scl)
 	if 'advanceHeight' in glyph:
@@ -334,7 +326,6 @@ def sclglyph(glyph, scl):
 		for reference in glyph['references']:
 			reference['x'] = round(scl * reference['x'])
 			reference['y'] = round(scl * reference['y'])
-
 def setnm(font, ennm, tcnm='', scnm='', versn=''):
 	print('Processing font name...')
 	wt=str()
@@ -352,7 +343,7 @@ def setnm(font, ennm, tcnm='', scnm='', versn=''):
 	itml, itm=str(), str()
 	if isit: itml, itm=' Italic', 'It'
 	if not versn:
-		versn=str('{:.2f}'.format(font['head'].fontRevision))
+		versn=str('{:.2f}'.format(font['head']['fontRevision']))
 	else:
 		font['head']['fontRevision']=float(versn)
 	fmlName=ennm
@@ -374,7 +365,6 @@ def setnm(font, ennm, tcnm='', scnm='', versn=''):
 	psName=fmlName.replace(' ', '')+'-'+wt+itm
 	uniqID=versn+';'+psName
 	if wt=='Bold':
-	#if wt in ('Regular', 'Bold') and not (isit and wt=='Regular'):
 		fullName=ftName+' '+wt+itml
 		fullNamesc=ftNamesc+' '+wt+itml
 		fullNametc=ftNametc+' '+wt+itml
@@ -384,40 +374,40 @@ def setnm(font, ennm, tcnm='', scnm='', versn=''):
 		fullNametc=ftNametc+itml
 	newname=list()
 	newname+=[
-		{'languageID': 1033,'nameID': 1,'nameString': ftName}, 
-		{'languageID': 1033,'nameID': 2,'nameString': subfamily}, 
-		{'languageID': 1033,'nameID': 3,'nameString': uniqID}, 
-		{'languageID': 1033,'nameID': 4,'nameString': fullName}, 
-		{'languageID': 1033,'nameID': 5,'nameString': 'Version '+versn}, 
-		{'languageID': 1033,'nameID': 6,'nameString': psName}, 
+		{'languageID': 1033,'nameID': 1,'nameString': ftName},
+		{'languageID': 1033,'nameID': 2,'nameString': subfamily},
+		{'languageID': 1033,'nameID': 3,'nameString': uniqID},
+		{'languageID': 1033,'nameID': 4,'nameString': fullName},
+		{'languageID': 1033,'nameID': 5,'nameString': 'Version '+versn},
+		{'languageID': 1033,'nameID': 6,'nameString': psName},
 		]
 	if wt not in ('Regular', 'Bold'):
 		newname+=[
-			{'languageID': 1033,'nameID': 16,'nameString': fmlName}, 
+			{'languageID': 1033,'nameID': 16,'nameString': fmlName},
 			{'languageID': 1033,'nameID': 17,'nameString': wt+itml}
 			]
 	if tcnm:
 		for lanid in (1028, 3076, 5124):
 			newname+=[
-				{'languageID': lanid,'nameID': 1,'nameString': ftNametc}, 
-				{'languageID': lanid,'nameID': 2,'nameString': subfamily}, 
+				{'languageID': lanid,'nameID': 1,'nameString': ftNametc},
+				{'languageID': lanid,'nameID': 2,'nameString': subfamily},
 				{'languageID': lanid,'nameID': 4,'nameString': fullNametc}
 				]
 			if wt not in ('Regular', 'Bold'):
 				newname+=[
-					{'languageID': lanid,'nameID': 16,'nameString': tcnm}, 
+					{'languageID': lanid,'nameID': 16,'nameString': tcnm},
 					{'languageID': lanid,'nameID': 17,'nameString': wt+itml}
 					]
 	if scnm:
 		for lanid in (2052, 4100):
 			newname+=[
-				{'languageID': lanid,'nameID': 1,'nameString': ftNamesc}, 
-				{'languageID': lanid,'nameID': 2,'nameString': subfamily}, 
+				{'languageID': lanid,'nameID': 1,'nameString': ftNamesc},
+				{'languageID': lanid,'nameID': 2,'nameString': subfamily},
 				{'languageID': lanid,'nameID': 4,'nameString': fullNamesc}
 				]
 			if wt not in ('Regular', 'Bold'):
 				newname+=[
-					{'languageID': lanid,'nameID': 16,'nameString': scnm}, 
+					{'languageID': lanid,'nameID': 16,'nameString': scnm},
 					{'languageID': lanid,'nameID': 17,'nameString': wt+itml}
 					]
 	for nl in newname:
@@ -425,7 +415,6 @@ def setnm(font, ennm, tcnm='', scnm='', versn=''):
 		nl['encodingID']=1
 	font['name']=newname
 	if 'CFF_' in font:
-		#font['CFF_']['notice']=''
 		font['CFF_']['fontName']=psName
 		font['CFF_']['fullName']=fmlName+' '+wt
 		font['CFF_']['familyName']=fmlName
@@ -437,12 +426,11 @@ def setnm(font, ennm, tcnm='', scnm='', versn=''):
 			for gl in font['glyf'].values():
 				if 'CFF_fdSelect' in gl:
 					gl['CFF_fdSelect']=psName+'-'+gl['CFF_fdSelect'].split('-')[-1]
-
 def jptotr(font):
 	print('Processing Japanese Kanji...')
 	dv = dict()
 	if 'cmap_uvs' not in font:
-		raise RuntimeError('This font is not applicable! 此功能不適用這個字體。')
+		raise RuntimeError('This font is not applicable!')
 	for k in font['cmap_uvs'].keys():
 		c, v = k.split(' ')
 		if c not in dv:
@@ -460,7 +448,6 @@ def jptotr(font):
 			if tv[k] in dv[k]:
 				tch = dv[k][tv[k]]
 				font['cmap'][k] = tch
-
 def stts(font, wkon, vr=False):
 	mulp=str()
 	tabch=wkon.split('.')[0]
@@ -478,7 +465,6 @@ def stts(font, wkon, vr=False):
 		if tabch != 'ts' and vr:
 			addvariants(font)
 		lookuptable(font, tabch, mulchar)
-
 def parseArgs(args):
 	nwk=dict()
 	nwk['inFilePath'], nwk['outFilePath'], nwk['outFilePath2'], nwk['enN'], nwk['scN'], nwk['tcN'], nwk['vsN']=(str() for i in range(7))
@@ -525,7 +511,6 @@ def parseArgs(args):
 	if not nwk['enN'] and (nwk['tcN'] or nwk['scN'] or nwk['vsN']):
 		raise RuntimeError("You must specify English name first.")
 	return nwk
-
 def run(args):
 	print('Loading font...')
 	wkfl=parseArgs(args)
@@ -549,9 +534,7 @@ def run(args):
 	subprocess.run((otfccbuild, '--keep-modified-time', '--keep-average-char-width', '-O3', '-q', '-o', wkfl['outFilePath'], tmpfile))
 	os.remove(tmpfile)
 	print('Finished!')
-
 def main():
 	run(sys.argv[1:])
-
 if __name__ == "__main__":
 	main()
