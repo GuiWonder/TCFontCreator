@@ -131,7 +131,10 @@ def removeglyhps(font):
 			font.removeGlyph(gls)
 def ForCharslookups(font, tabch, mulchar):
 	code_glyph, glyph_codes=getallcodesname(font)
-	font.addLookup('stchar', 'gsub_single', None, (("ccmp",(("hani",("dflt")),)),))
+	lantgs=list()
+	for lantg in ('DFLT', 'hani', 'latn'):
+		lantgs.append((lantg, ("dflt",)))
+	font.addLookup('stchar', 'gsub_single', None, (("ccmp", tuple(lantgs)), ))
 	font.addLookupSubtable('stchar', 'stchar1')
 	if tabch=='ts':
 		txtfl=['Chars_tsm', ]
@@ -145,7 +148,7 @@ def ForCharslookups(font, tabch, mulchar):
 				s, t = litm.split('\t')
 				s = s.strip()
 				t = t.strip()
-				if tabch!='ts' and s not in mulchar:continue
+				if tabch!='ts' and txf!='Punctuation' and s not in mulchar:continue
 				if s and t and s != t and ord(t) in code_glyph and ord(s) in code_glyph:
 					gntc = code_glyph[ord(t)]
 					gnsc = code_glyph[ord(s)]
@@ -176,8 +179,11 @@ def ForWordslookups(font, tabch):
 	if len(stword) + sumf > 65535:
 		raise RuntimeError('Not enough glyph space! You need ' + str(len(stword) + sumf - 65535) + ' more glyph space!')
 	stword.sort(key=lambda x:len(x[0]), reverse = True)
-	font.addLookup('stmult', 'gsub_multiple', None, (("ccmp",(("hani",("dflt")),)),), 'stchar')
-	font.addLookup('stliga', 'gsub_ligature', None, (("ccmp",(("hani",("dflt")),)),))
+	lantgs=list()
+	for lantg in ('DFLT', 'hani', 'latn'):
+		lantgs.append((lantg, ("dflt",)))
+	font.addLookup('stmult', 'gsub_multiple', None, (("ccmp", tuple(lantgs)), ), 'stchar')
+	font.addLookup('stliga', 'gsub_ligature', None, (("ccmp", tuple(lantgs)), ))
 	i, j, tlen, wlen = 0, 0, 0, len(stword[0][0])
 	font.addLookupSubtable('stmult', 'stmult0')
 	font.addLookupSubtable('stliga', 'stliga0')
@@ -311,7 +317,7 @@ def jptotr(font):
 					if alt[0] in tv and tv[alt[0]] == alt[1]:
 						ltb.append((gls.glyphname, alt[0]))
 	if len(ltb)<1:
-		raise RuntimeError('This font is not applicable! 此功能不適用這個字體。')
+		raise RuntimeError('This font is not applicable!')
 	for t1 in ltb:
 		unimvtogly(font, code_glyph, glyph_codes, t1[1], t1[0])
 def unimvtogly(font, code_glyph, glyph_codes, uni, gly):

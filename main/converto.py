@@ -189,7 +189,7 @@ def lkpsch(font, tabch, mulchar):
 				if '\t' not in litm: continue
 				s, t = litm.split('\t')
 				s, t= s.strip(), t.strip()
-				if tabch!='ts' and s not in mulchar:continue
+				if tabch!='ts' and txf!='Punctuation' and s not in mulchar:continue
 				if s and t and s != t and str(ord(s)) in font['cmap'] and str(ord(t)) in font['cmap']:
 					kt[font['cmap'][str(ord(s))]] = font['cmap'][str(ord(t))]
 	font['GSUB']['lookups']['stchars'] = {'type': 'gsub_single', 'flags': {}, 'subtables': [kt]}
