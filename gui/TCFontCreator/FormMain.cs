@@ -99,46 +99,31 @@ namespace TCFontCreator
             string filein2 = textBoxIn2.Text.Trim();
             fileout = textBoxOut.Text.Trim();
             otcff = comboBoxApp.SelectedIndex == 0;
-            string stmode;
-            switch (comboBoxSys.SelectedIndex)
-            {
-                case 0:
-                    stmode = "st";
-                    break;
-                case 1:
-                    stmode = "var";
-                    break;
-                case 2:
-                    stmode = "sat";
-                    break;
-                case 3:
-                    stmode = "faf";
-                    break;
-                case 4:
-                    stmode = "jt";
-                    break;
-                case 5:
-                    stmode = "ts";
-                    break;
-                default:
-                    stmode = "st";
-                    break;
-            }
+            string[] stmodes = { "st", "var", "sat", "faf", "jt", "ts" };
+            string stmode = stmodes[comboBoxSys.SelectedIndex];
             if (stmode == "st")
             {
-                if (comboBoxVar.SelectedIndex == 1)
+                if (comboBoxVar.SelectedIndex == 0)
                 {
-                    stmode += "tw";
+                    stmode += ".dft";
+                }
+                else if (comboBoxVar.SelectedIndex == 1)
+                {
+                    stmode += ".tw";
                 }
                 else if (comboBoxVar.SelectedIndex == 2)
                 {
-                    stmode += "hk";
+                    stmode += ".hk";
                 }
                 else if (comboBoxVar.SelectedIndex == 3)
                 {
-                    stmode += "cl";
+                    stmode += ".cl";
                 }
-                if (comboBoxMulti.SelectedIndex == 1)
+                if (comboBoxMulti.SelectedIndex == 0)
+                {
+                    stmode += ".n";
+                }
+                else if (comboBoxMulti.SelectedIndex == 1)
                 {
                     stmode += ".s";
                 }

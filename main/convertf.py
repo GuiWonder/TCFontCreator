@@ -33,17 +33,6 @@ def addvariants(font):
 					chcode = ord(ch1)
 					if chcode not in code_glyph:
 						mvcodetocode(font, code_glyph, glyph_codes, chcode, codein)
-def transforme(font, tabch, mulchar):
-	print('Processing Chinese Chars...')
-	code_glyph, glyph_codes=getallcodesname(font)
-	with open(os.path.join(pydir, f'datas/Chars_{tabch}.txt'), 'r',encoding = 'utf-8') as f:
-		for line in f.readlines():
-			litm=line.split('#')[0].strip()
-			if '\t' not in litm: continue
-			lnst=litm.split('\t')
-			s, t = lnst[0].strip(), lnst[1].strip()
-			if s and t and s != t and (s not in mulchar):
-				mvcodetocode(font, code_glyph, glyph_codes, ord(s), ord(t))
 def mvcodetocode(font, code_glyph, glyph_codes, uni, unito):
 	if unito not in code_glyph:
 		return
@@ -129,75 +118,14 @@ def removeglyhps(font):
 		if gls.glyphname not in useg:
 			gls.removePosSub('*')
 			font.removeGlyph(gls)
-def ForCharslookups(font, tabch, mulchar):
-	code_glyph, glyph_codes=getallcodesname(font)
-	lantgs=list()
-	for lantg in ('DFLT', 'hani', 'latn'):
-		lantgs.append((lantg, ("dflt",)))
-	font.addLookup('stchar', 'gsub_single', None, (("ccmp", tuple(lantgs)), ))
-	font.addLookupSubtable('stchar', 'stchar1')
-	if tabch=='ts':
-		txtfl=['Chars_tsm', ]
-	else:
-		txtfl=[f'Chars_{tabch}', 'Punctuation']
-	for txf in txtfl:
-		with open(os.path.join(pydir, f'datas/{txf}.txt'), 'r', encoding = 'utf-8') as f:
-			for line in f.readlines():
-				litm=line.split('#')[0].strip()
-				if '\t' not in litm: continue
-				s, t = litm.split('\t')
-				s = s.strip()
-				t = t.strip()
-				if tabch!='ts' and txf!='Punctuation' and s not in mulchar:continue
-				if s and t and s != t and ord(t) in code_glyph and ord(s) in code_glyph:
-					gntc = code_glyph[ord(t)]
-					gnsc = code_glyph[ord(s)]
-					if gntc != gnsc:
-						font[gnsc].addPosSub('stchar1', gntc)
-def ForWordslookups(font, tabch):
-	code_glyph, glyph_codes=getallcodesname(font)
-	phrases='datas/STPhrases.txt'
-	if tabch=='ts':
-		phrases='datas/TSPhrases.txt'
-	stword = list()
-	with open(os.path.join(pydir, phrases),'r',encoding = 'utf-8') as f:
-		ccods=set(code_glyph.keys())
-		for line in f.readlines():
-			litm=line.split('#')[0].strip()
-			litm=litm.split(' ')[0].strip()
-			if '\t' not in litm: continue
-			s, t = litm.split('\t')
-			s = s.strip()
-			t = t.strip()
-			if not(s and t): continue
-			codestc = set(ord(c) for c in s+t)
-			if codestc.issubset(ccods):
-				stword.append((s, t))
-	if len(stword) < 1:
-		return
-	sumf = sum(1 for _ in font.glyphs())
-	if len(stword) + sumf > 65535:
-		raise RuntimeError('Not enough glyph space! You need ' + str(len(stword) + sumf - 65535) + ' more glyph space!')
-	stword.sort(key=lambda x:len(x[0]), reverse = True)
-	lantgs=list()
-	for lantg in ('DFLT', 'hani', 'latn'):
-		lantgs.append((lantg, ("dflt",)))
-	font.addLookup('stmult', 'gsub_multiple', None, (("ccmp", tuple(lantgs)), ), 'stchar')
-	font.addLookup('stliga', 'gsub_ligature', None, (("ccmp", tuple(lantgs)), ))
-	i, j, tlen, wlen = 0, 0, 0, len(stword[0][0])
-	font.addLookupSubtable('stmult', 'stmult0')
-	font.addLookupSubtable('stliga', 'stliga0')
-	for wd in stword:
-		tlen += len(wd[0] + wd[1])
-		wlen2 = len(stword[i][0])
-		if tlen >= 20000 or wlen2 < wlen:
-			tlen = 0
-			wlen = wlen2
-			j += 1
-			font.addLookupSubtable('stmult', 'stmult' + str(j), 'stmult' + str(j - 1))
-			font.addLookupSubtable('stliga', 'stliga' + str(j), 'stliga' + str(j - 1))
-		i += 1
-		addlookupsword(font, code_glyph, wd[1], wd[0], str(j), str(i))
+def getlklan(font):
+	lans=list()
+	for lk in font.gsub_lookups:
+		lkif=font.getLookupInfo(lk)
+		if len(lkif)>2 and len(lkif[2])>0:
+			for lan in lkif[2][0][1]:
+				if lan not in lans: lans.append(lan)
+	return lans
 def addlookupsword(font, code_glyph, tcword, scword, j, i):
 	newgname = 'ligast' + i
 	wdin = list()
@@ -325,23 +253,113 @@ def unimvtogly(font, code_glyph, glyph_codes, uni, gly):
 		return
 	rmcode(font, code_glyph, glyph_codes, code_glyph[uni], uni)
 	adduni(font, code_glyph, glyph_codes, gly, uni)
+def mapts(font, maindic, ignch):
+	code_glyph, glyph_codes=getallcodesname(font)
+	for ch in maindic.keys():
+		if ch in ignch: continue
+		cdto=ord(maindic[ch])
+		if cdto in code_glyph:
+			mvcodetocode(font, code_glyph, glyph_codes, ord(ch), cdto)
+def checklk(font):
+	lantgs=getlklan(font)
+	for lantg in ('DFLT', 'hani', 'latn'):
+		if (lantg, ('dflt',)) not in lantgs:
+			lantgs.append((lantg, ('dflt',)))
+	font.addLookup('stchar', 'gsub_single', None, (("ccmp", tuple(lantgs)), ))
+	font.addLookup('stmult', 'gsub_multiple', None, (("ccmp", tuple(lantgs)), ), 'stchar')
+	font.addLookup('stliga', 'gsub_ligature', None, (("ccmp", tuple(lantgs)), ))
+	font.addLookupSubtable('stchar', 'stchar1')
+def getdictxt(tabnm):
+	txtdic=dict()
+	with open(os.path.join(pydir, f'datas/{tabnm}.txt'),'r',encoding = 'utf-8') as f:
+		for line in f.readlines():
+			litm=line.split('#')[0].strip().split(' ')[0]
+			if '\t' not in litm: continue
+			lnst=litm.split('\t')
+			s, t = lnst[0].strip(), lnst[1].strip()
+			if s and t and s != t:
+				txtdic[s]=t
+	return txtdic
+def varck(text, vardic):
+	for ch in vardic.keys():
+		text=text.replace(ch, vardic[ch])
+	return text
 def stts(font, wkon, vr=False):
-	mulp=str()
-	tabch=wkon.split('.')[0]
-	if '.' in wkon: mulp=wkon.split('.')[1]
-	mulchar = getmulchar(mulp == "multi")
-	if tabch == 'ts' or mulp == 's':
-		transforme(font, tabch, "")
-	else:
-		transforme(font, tabch, mulchar)
-	if tabch != 'ts' and mulp == "m":
+	tabset=wkon.split('.')
+	tabch=tabset[0]
+	maindic, locvar=dict(), dict()
+	mulp, locset, mulchar=str(), str(), str()
+	if tabch=='st':
+		locset, mulp=tabset[1], tabset[2]
+		if mulp!='s':
+			mulchar = getmulchar(mulp == "m")
+		if mulp=='m' and locset=='tw' and '么' not in mulchar:
+			mulchar+='么'
+	maindic=getdictxt('Chars_'+tabch)
+	if locset in ['tw', 'hk', 'cl']:
+		locvar=getdictxt('Var_'+locset)
+		for ch in locvar.keys():
+			if ch not in maindic.values():
+				maindic[ch]=locvar[ch]
+		for ch in list(maindic.keys()):
+			if maindic[ch] in locvar:
+				maindic[ch]=locvar[maindic[ch]]
+	mapts(font, maindic, mulchar)
+	if mulp == "m":
 		removeglyhps(font)
-		if vr:
-			addvariants(font)
+		if vr: addvariants(font)
+	code_glyph, glyph_codes=getallcodesname(font)
 	if tabch == 'ts' or mulp == "m":
-		print('Adding lookups...')
-		ForCharslookups(font, tabch, mulchar)
-		ForWordslookups(font, tabch)
+		checklk(font)
+		if tabch=='ts':
+			ftdic=getdictxt('Chars_tsm')
+		else:
+			ftdic=dict()
+			for ch in maindic.keys():
+				if ch in mulchar:
+					ftdic[ch]=maindic[ch]
+			if locset=='tw':
+				ftdic['么']='麼'
+				ftdic['幺']='么'
+		for ch in ftdic.keys():
+			gntc = code_glyph[ord(ftdic[ch])]
+			gnsc = code_glyph[ord(ch)]
+			if gntc != gnsc:
+				font[gnsc].addPosSub('stchar1', gntc)
+		stword = list()
+		phrases=f'datas/{tabch.upper()}Phrases.txt'
+		with open(os.path.join(pydir, phrases),'r',encoding = 'utf-8') as f:
+			ccods=set(code_glyph.keys())
+			for line in f.readlines():
+				litm=line.split('#')[0].strip()
+				litm=litm.split(' ')[0].strip()
+				s, t = litm.split('\t')
+				s, t = s.strip(), t.strip()
+				if not(s and t): continue
+				if locset in ['tw', 'hk', 'cl']:
+					t=varck(t, locvar)
+				codestc = set(ord(c) for c in s+t)
+				if codestc.issubset(ccods):
+					stword.append((s, t))
+		if len(stword) > 0:
+			sumf = sum(1 for _ in font.glyphs())
+			if len(stword) + sumf > 65535:
+				raise RuntimeError('Not enough glyph space! You need ' + str(len(stword) + sumf - 65535) + ' more glyph space!')
+			stword.sort(key=lambda x:len(x[0]), reverse = True)
+			i, j, tlen, wlen = 0, 0, 0, len(stword[0][0])
+			font.addLookupSubtable('stmult', 'stmult0')
+			font.addLookupSubtable('stliga', 'stliga0')
+			for wd in stword:
+				tlen += len(wd[0] + wd[1])
+				wlen2 = len(stword[i][0])
+				if tlen >= 20000 or wlen2 < wlen:
+					tlen = 0
+					wlen = wlen2
+					j += 1
+					font.addLookupSubtable('stmult', 'stmult' + str(j), 'stmult' + str(j - 1))
+					font.addLookupSubtable('stliga', 'stliga' + str(j), 'stliga' + str(j - 1))
+				i += 1
+				addlookupsword(font, code_glyph, wd[1], wd[0], str(j), str(i))
 def setnm(font, ennm, tcnm='', scnm='', versn=''):
 	print('Processing font name...')
 	wt=str()
@@ -487,7 +505,7 @@ def run(args):
 		jptotr(infont)
 	if wkfl['work']=="var" or wkfl['varit']:
 		addvariants(infont)
-	if wkfl['work'].split('.')[0] in ("st", "sttw", "sthk", "stcl", "ts"):
+	if wkfl['work'].split('.')[0] in ("st", "ts"):
 		stts(infont, wkfl['work'], wkfl['varit'])
 	if wkfl['enN']:
 		setnm(infont, wkfl['enN'], wkfl['tcN'], wkfl['scN'], wkfl['vsN'])

@@ -37,16 +37,6 @@ def addvariants(font):
 				for ch1 in vari:
 					if str(ord(ch1)) not in font['cmap']:
 						font['cmap'][str(ord(ch1))] = gtgly
-def transforme(font, tabch, mulchar):
-	print('Processing Chinese Chars...')
-	with open(os.path.join(pydir, f'datas/Chars_{tabch}.txt'),'r',encoding = 'utf-8') as f:
-		for line in f.readlines():
-			litm=line.split('#')[0].strip()
-			if '\t' not in litm: continue
-			lnst=litm.split('\t')
-			s, t = lnst[0].strip(), lnst[1].strip()
-			if s and t and s != t and (s not in mulchar) and str(ord(t)) in font['cmap']:
-				font['cmap'][str(ord(s))] = font['cmap'][str(ord(t))]
 def removeglyhps(font, sp=False):
 	print('Removing glyghs...')
 	usedg=set()
@@ -158,62 +148,6 @@ def removeglyhps(font, sp=False):
 					if len(gs.intersection(unusegl))<1:
 						nsb.append(subtable)
 				lookup['subtables']=nsb
-def lookuptable(font, chartb, mulchar):
-	print('Building lookups...')
-	if not 'GSUB' in font:
-		print('Creating empty GSUB!')
-		font['GSUB'] = {
-			'languages': {'hani_DFLT': {'features': []}},
-			'features': {},
-			'lookups': {},
-			'lookupOrder': []
-		}
-	if not 'hani_DFLT' in font['GSUB']['languages']:
-		font['GSUB']['languages']['hani_DFLT'] = {'features': []}
-	for table in font['GSUB']['languages'].values():
-		table['features'].insert(0, 'ccmp_st')
-	font['GSUB']['features']['ccmp_st'] = ['wordsc', 'stchars', 'wordtc']
-	font['GSUB']['lookupOrder']=['wordsc', 'stchars', 'wordtc']+font['GSUB']['lookupOrder']
-	lkpsch(font, chartb, mulchar)
-	lkpswd(font, chartb)
-def lkpsch(font, tabch, mulchar):
-	kt = dict()
-	if tabch=='ts':
-		txtfl=['Chars_tsm', ]
-	else:
-		txtfl=[f'Chars_{tabch}', 'Punctuation']
-	for txf in txtfl:
-		with open(os.path.join(pydir, f'datas/{txf}.txt'), 'r', encoding = 'utf-8') as f:
-			for line in f.readlines():
-				litm=line.split('#')[0].strip()
-				if '\t' not in litm: continue
-				s, t = litm.split('\t')
-				s, t= s.strip(), t.strip()
-				if tabch!='ts' and txf!='Punctuation' and s not in mulchar:continue
-				if s and t and s != t and str(ord(s)) in font['cmap'] and str(ord(t)) in font['cmap']:
-					kt[font['cmap'][str(ord(s))]] = font['cmap'][str(ord(t))]
-	font['GSUB']['lookups']['stchars'] = {'type': 'gsub_single', 'flags': {}, 'subtables': [kt]}
-def lkpswd(font, stcv):
-	phrases='datas/STPhrases.txt'
-	if stcv=='ts':
-		phrases='datas/TSPhrases.txt'
-	stword = list()
-	with open(os.path.join(pydir, phrases),'r',encoding = 'utf-8') as f:
-		ccods=set(font['cmap'].keys())
-		for line in f.readlines():
-			litm=line.split('#')[0].strip()
-			litm=litm.split(' ')[0].strip()
-			s, t = litm.split('\t')
-			s, t = s.strip(), t.strip()
-			if not(s and t): continue
-			codestc = set(str(ord(c)) for c in s+t)
-			if codestc.issubset(ccods):
-				stword.append((s, t))
-	if len(stword) + len(font['glyph_order']) > 65535:
-		nd=len(stword) + len(font['glyph_order']) - 65535
-		raise RuntimeError('Not enough glyph space! You need ' + str(nd) + ' more glyph space!')
-	if len(stword) > 0:
-		addlookupword(font, stword)
 def addlookupword(font, stword):
 	stword.sort(key=lambda x:len(x[0]), reverse = True)
 	subtablesl = list()
@@ -448,23 +382,106 @@ def jptotr(font):
 			if tv[k] in dv[k]:
 				tch = dv[k][tv[k]]
 				font['cmap'][k] = tch
+def mapts(font, maindic, ignch):
+	for ch in maindic.keys():
+		if ch in ignch: continue
+		cdto=str(ord(maindic[ch]))
+		if cdto in font['cmap']:
+			font['cmap'][str(ord(ch))] = font['cmap'][cdto]
+def checklk(font):
+	if not 'GSUB' in font:
+		font['GSUB'] = {
+			'languages': {},
+			'features': {},
+			'lookups': {},
+			'lookupOrder': []
+		}
+	for scrtg in ['DFLT_DFLT', 'hani_DFLT', 'latn_DFLT']:
+		if scrtg not in font['GSUB']['languages']:
+			font['GSUB']['languages'][scrtg] = {'features': []}
+	for table in font['GSUB']['languages'].values():
+		table['features'].insert(0, 'ccmp_st')
+	font['GSUB']['features']['ccmp_st'] = ['wordsc', 'stchars', 'wordtc']
+	font['GSUB']['lookupOrder']=['wordsc', 'stchars', 'wordtc']+font['GSUB']['lookupOrder']
+def getdictxt(tabnm):
+	txtdic=dict()
+	with open(os.path.join(pydir, f'datas/{tabnm}.txt'),'r',encoding = 'utf-8') as f:
+		for line in f.readlines():
+			litm=line.split('#')[0].strip().split(' ')[0]
+			if '\t' not in litm: continue
+			lnst=litm.split('\t')
+			s, t = lnst[0].strip(), lnst[1].strip()
+			if s and t and s != t:
+				txtdic[s]=t
+	return txtdic
+def varck(text, vardic):
+	for ch in vardic.keys():
+		text=text.replace(ch, vardic[ch])
+	return text
 def stts(font, wkon, vr=False):
-	mulp=str()
-	tabch=wkon.split('.')[0]
-	if '.' in wkon: mulp=wkon.split('.')[1]
-	mulchar = getmulchar(mulp == "multi")
-	if tabch == 'ts' or mulp == 's':
-		transforme(font, tabch, "")
-	else:
-		transforme(font, tabch, mulchar)
-	if tabch != 'ts' and mulp == "m":
+	tabset=wkon.split('.')
+	tabch=tabset[0]
+	maindic, locvar=dict(), dict()
+	mulp, locset, mulchar=str(), str(), str()
+	if tabch=='st':
+		locset, mulp=tabset[1], tabset[2]
+		if mulp!='s':
+			mulchar = getmulchar(mulp == "m")
+		if mulp=='m' and locset=='tw' and '么' not in mulchar:
+			mulchar+='么'
+	maindic=getdictxt('Chars_'+tabch)
+	if locset in ['tw', 'hk', 'cl']:
+		locvar=getdictxt('Var_'+locset)
+		for ch in locvar.keys():
+			if ch not in maindic.values():
+				maindic[ch]=locvar[ch]
+		for ch in list(maindic.keys()):
+			if maindic[ch] in locvar:
+				maindic[ch]=locvar[maindic[ch]]
+	mapts(font, maindic, mulchar)
+	if mulp == "m":
 		removeglyhps(font, True)
+		if vr: addvariants(font)
 	else:
 		removeglyhps(font, False)
 	if tabch == 'ts' or mulp == "m":
-		if tabch != 'ts' and vr:
-			addvariants(font)
-		lookuptable(font, tabch, mulchar)
+		checklk(font)
+		if tabch=='ts':
+			ftdic=getdictxt('Chars_tsm')
+		else:
+			ftdic=dict()
+			for ch in maindic.keys():
+				if ch in mulchar:
+					ftdic[ch]=maindic[ch]
+			if locset=='tw':
+				ftdic['么']='麼'
+				ftdic['幺']='么'
+		kt=dict()
+		for ch in ftdic.keys():
+			cd1, cd2=str(ord(ch)), str(ord(ftdic[ch]))
+			if cd1 in font['cmap'] and cd2 in font['cmap'] and font['cmap'][cd1]!=font['cmap'][cd2]:
+				kt[font['cmap'][cd1]]=font['cmap'][cd2]
+		font['GSUB']['lookups']['stchars'] = {'type': 'gsub_single', 'flags': {}, 'subtables': [kt]}
+		stword = list()
+		phrases=f'datas/{tabch.upper()}Phrases.txt'
+		with open(os.path.join(pydir, phrases),'r',encoding = 'utf-8') as f:
+			ccods=set(font['cmap'].keys())
+			for line in f.readlines():
+				litm=line.split('#')[0].strip()
+				litm=litm.split(' ')[0].strip()
+				s, t = litm.split('\t')
+				s, t = s.strip(), t.strip()
+				if not(s and t): continue
+				if locset in ['tw', 'hk', 'cl']:
+					t=varck(t, locvar)
+				codestc = set(str(ord(c)) for c in s+t)
+				if codestc.issubset(ccods):
+					stword.append((s, t))
+		if len(stword) + len(font['glyph_order']) > 65535:
+			nd=len(stword) + len(font['glyph_order']) - 65535
+			raise RuntimeError('Not enough glyph space! You need ' + str(nd) + ' more glyph space!')
+		if len(stword) > 0:
+			addlookupword(font, stword)
 def parseArgs(args):
 	nwk=dict()
 	nwk['inFilePath'], nwk['outFilePath'], nwk['outFilePath2'], nwk['enN'], nwk['scN'], nwk['tcN'], nwk['vsN']=(str() for i in range(7))
@@ -521,7 +538,7 @@ def run(args):
 		jptotr(infont)
 	if wkfl['work']=="var" or wkfl['varit']:
 		addvariants(infont)
-	if wkfl['work'].split('.')[0] in ("st", "sttw", "sthk", "stcl", "ts"):
+	if wkfl['work'].split('.')[0] in ("st", "ts"):
 		stts(infont, wkfl['work'], wkfl['varit'])
 	if wkfl['enN']:
 		setnm(infont, wkfl['enN'], wkfl['tcN'], wkfl['scN'], wkfl['vsN'])

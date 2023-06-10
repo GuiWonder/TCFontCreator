@@ -1,12 +1,10 @@
 import subprocess, os
-
 pydir = os.path.abspath(os.path.dirname(__file__))
 fontforge='fontforge'
 python='python'
 python3='python3'
 pyfilef=os.path.join(pydir, 'convertf.py')
 pyfileo=os.path.join(pydir, 'converto.py')
-
 def ckfile(f):
 	f=f.strip()
 	if not os.path.isfile(f):
@@ -15,7 +13,6 @@ def ckfile(f):
 		elif os.path.isfile(f.strip("'")):
 			return f.strip("'")
 	return f
-
 print('====中文字体简繁处理工具====\n')
 while True:
 	args=list()
@@ -40,6 +37,7 @@ while True:
 	outfile=str()
 	while not outfile.strip():
 		outfile=input('请输入输出文件：\n')
+		outfile=outfile.strip('"').strip("'")
 	args+=['-o', outfile]
 	if wk!='var':
 		vari=str()
@@ -48,18 +46,16 @@ while True:
 		if vari=='y':
 			args.append('-v')
 	if wk=='st':
-		stvs={'1':'', '2':'tw', '3':'hk', '4':'cl'}
+		stvs={'1':'.dft', '2':'.tw', '3':'.hk', '4':'.cl'}
 		stvar=str()
 		while stvar not in stvs.keys():
 			stvar=input('请选择繁体异体字：\n\t1.默认\n\t2.台湾\n\t3.香港\n\t4.旧字形\n')
 		wk+=stvs[stvar]
+		muls={'1':'.n', '2':'.s', '3':'.m'}
 		selmulti=str()
-		while selmulti not in {'1', '2', '3'}:
+		while selmulti not in muls.keys():
 			selmulti=input('请选择简繁一对多的处理方式：\n\t1.不处理一对多\n\t2.使用单一常用字\n\t3.使用词汇正确一简对多繁\n')
-		if selmulti=='2':
-			wk+='.s'
-		elif selmulti=='3':
-			wk+='.m'
+		wk+=muls[selmulti]
 	args+=['-wk', wk]
 	appused=str()
 	while appused not in ('otfcc', 'FontForge'):
