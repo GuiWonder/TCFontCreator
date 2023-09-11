@@ -16,6 +16,8 @@
 針對部分日本字型的處理。
 #### 6. 生成繁轉簡字型
 繁入簡出的字型。
+#### 7. 生成簡轉繁字型臺灣詞彙
+包含臺灣常用語以及化學元素名稱的轉換。
 
 ## 常見問題
 #### 1. 如何在 Linux 或 Mac 上使用？
@@ -38,4 +40,4 @@
 * [otfcc](https://github.com/caryll/otfcc)
 * [FontForge](https://github.com/fontforge/fontforge)
 * [Open Chinese Convert](https://github.com/BYVoid/OpenCC)
-* [《正確實現簡轉繁字型》](https://ayaka.shn.hk/s2tfont/hant/)
+* [《正確實現簡轉繁字型》](https://ayaka.shn.hk/s2tfont/hant/)、[繁媛明朝](https://github.com/ayaka14732/FanWunMing) 作者 [Ayaka](https://github.com/ayaka14732)

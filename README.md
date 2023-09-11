@@ -16,6 +16,8 @@
 针对部分日本字体的处理。
 #### 6. 生成繁转简字体
 繁入简出的字体。
+#### 7. 生成简转繁字体台湾词彙
+包含台湾常用语以及化学元素名称的转换。
 
 ## 常见问题
 #### 1. 如何在 Linux 或 Mac 上使用？
@@ -38,4 +40,4 @@
 * [otfcc](https://github.com/caryll/otfcc)
 * [FontForge](https://github.com/fontforge/fontforge)
 * [Open Chinese Convert](https://github.com/BYVoid/OpenCC)
-* [《正确实现简转繁字体》](https://ayaka.shn.hk/s2tfont/)
+* [《正确实现简转繁字体》](https://ayaka.shn.hk/s2tfont/)、[繁媛明朝](https://github.com/ayaka14732/FanWunMing) 作者 [Ayaka](https://github.com/ayaka14732)

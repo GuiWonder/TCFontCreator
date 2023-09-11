@@ -16,10 +16,10 @@ def ckfile(f):
 print('====中文字体简繁处理工具====\n')
 while True:
 	args=list()
-	awks={'1':'st', '2':'var', '3':'sat', '4':'faf', '5':'jt', '6':'ts'}
+	awks={'1':'st', '2':'var', '3':'sat', '4':'faf', '5':'jt', '6':'ts', '7':'ts.twp.m'}
 	stmode=str()
 	while stmode not in awks.keys():
-		stmode=input('请选择类型：\n\t1.生成简转繁字体\n\t2.使用同义字补全字库\n\t3.合并简体 GB2312、繁体 GB2312\n\t4.合并字体 1、字体 2\n\t5.日本新字形转为传承正字\n\t6.生成繁转简字体\n')
+		stmode=input('请选择类型：\n\t1.生成简转繁字体\n\t2.使用同义字补全字库\n\t3.合并简体 GB2312、繁体 GB2312\n\t4.合并字体 1、字体 2\n\t5.日本新字形转为传承正字\n\t6.生成繁转简字体\n\t7.生成简转繁字体台湾词汇\n')
 	wk=awks[stmode]
 	infile=str()
 	while not os.path.isfile(infile):

@@ -87,7 +87,8 @@
             "合併簡體 GB2312、繁體 GB2312",
             "合併字體1、字體2",
             "日本字體新字形轉爲舊字形(僅部分字體)",
-            "生成繁轉簡字體"});
+            "生成繁轉簡字體",
+            "生成簡轉繁字體臺灣詞彙"});
             this.comboBoxSys.Location = new System.Drawing.Point(77, 9);
             this.comboBoxSys.Name = "comboBoxSys";
             this.comboBoxSys.Size = new System.Drawing.Size(292, 20);

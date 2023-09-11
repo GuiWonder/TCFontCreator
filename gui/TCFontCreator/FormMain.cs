@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Windows.Forms;
 
 namespace TCFontCreator
@@ -16,11 +17,11 @@ namespace TCFontCreator
         private string exepy;
         private string path;
         private string fileout;
-        private string args;
-        private bool otcff;
+        private bool isotcff;
         private System.Threading.Thread thRun;
         private string err;
         private string outinfo;
+        private string cmdline;
 
         private void FormMain_Load(object sender, EventArgs e)
         {
@@ -86,10 +87,6 @@ namespace TCFontCreator
                     exeffpy = "C:/Program Files/FontForgeBuilds/bin/ffpython.exe";
                 }
             }
-            //if (!System.IO.File.Exists(exepy) && System.IO.File.Exists(exeffpy))
-            //{
-            //    exepy = exeffpy;
-            //}
         }
 
         private void ButtonStart_Click(object sender, EventArgs e)
@@ -98,9 +95,14 @@ namespace TCFontCreator
             string filein = textBoxIn.Text.Trim();
             string filein2 = textBoxIn2.Text.Trim();
             fileout = textBoxOut.Text.Trim();
-            otcff = comboBoxApp.SelectedIndex == 0;
-            string[] stmodes = { "st", "var", "sat", "faf", "jt", "ts" };
+            isotcff = comboBoxApp.SelectedIndex == 0;
+            string[] stmodes = { "st", "var", "sat", "faf", "jt", "ts", "st.twp.m" };
             string stmode = stmodes[comboBoxSys.SelectedIndex];
+            bool ffset = false;
+            if (!isotcff)
+            {
+                ffset = true;
+            }
             if (stmode == "st")
             {
                 if (comboBoxVar.SelectedIndex == 0)
@@ -138,13 +140,14 @@ namespace TCFontCreator
                 MessageBox.Show(this, "文件無效，請重新選擇。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            if (otcff && !System.IO.File.Exists(exepy))
+            if (isotcff && !System.IO.File.Exists(exepy))
             {
                 if (System.IO.File.Exists(exeffpy))
                 {
                     if (MessageBox.Show(this, "未能找到 Python,要使用 FontForge 所附帶的 Python 模塊嗎？可以在 appdata 文件中設置 python.exe 的路徑。", "提示", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
                     {
                         exepy = exeffpy;
+                        ffset = true;
                     }
                     else
                     {
@@ -158,7 +161,7 @@ namespace TCFontCreator
                 }
             }
 
-            if (!otcff && !System.IO.File.Exists(exeffpy))
+            if (!isotcff && !System.IO.File.Exists(exeffpy))
             {
                 MessageBox.Show(this, "未能找到 FontForge,請在 appdata 文件中設置 fontforge.exe 的路徑。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
@@ -176,9 +179,9 @@ namespace TCFontCreator
             {
                 filein = $"-i \"{filein}\"";
             }
-            string pyfile = otcff ? path + "converto.py" : path + "convertf.py";
+            string pyfile = isotcff ? path + "converto.py" : path + "convertf.py";
             pyfile = pyfile.Replace('\\', '/');
-            args = $"\"{pyfile}\" {filein} -o \"{fileout}\" -wk {stmode}";
+            string args = $"\"{pyfile}\" {filein} -o \"{fileout}\" -wk {stmode}";
             if (stmode != "var" && checkBoxYitizi.Checked)
             {
                 args += " -v";
@@ -199,7 +202,17 @@ namespace TCFontCreator
                     args += $" -vn \"{textBoxVersi.Text}\"";
                 }
             }
-
+            string ffpath = "";
+            if (ffset)
+            {
+                string bin = exeffpy.Substring(0, exeffpy.LastIndexOf('/'));
+                ffpath = bin.Substring(0, bin.LastIndexOf('/'));
+            }
+            cmdline = ffset ? $"set \"PYTHONHOME={ffpath}\"&\"{exeffpy}\" {args}" : $"\"{exepy}\" {args}";
+            if (!showCMD)
+            {
+                cmdline += "&exit";
+            }
             panelMain.Enabled = false;
             Cursor = Cursors.WaitCursor;
             Text = "正在處理，請耐心等待...";
@@ -215,21 +228,14 @@ namespace TCFontCreator
             using (System.Diagnostics.Process p = new System.Diagnostics.Process())
             {
                 p.StartInfo.FileName = "cmd";
-                string pyfile = otcff ? path + "covotfcc.py" : path + "covff.py";
                 fileout = fileout.Replace('\\', '/');
-                string bin = exeffpy.Substring(0, exeffpy.LastIndexOf('/'));
-                string ffpath = bin.Substring(0, bin.LastIndexOf('/'));
-                string arg1 = (otcff && exeffpy != exepy) ? "" : $"set \"PYTHONHOME={ffpath}\"&";
-                string runexe = (otcff && exeffpy != exepy) ? exepy : exeffpy;
-                string arg2 = $"\"{runexe}\" {args}";
-                string arg3 = showCMD ? "" : "&exit";
                 p.StartInfo.UseShellExecute = false;
                 p.StartInfo.CreateNoWindow = !showCMD;
                 p.StartInfo.RedirectStandardError = !showCMD;
                 p.StartInfo.RedirectStandardOutput = !showCMD;
                 p.StartInfo.RedirectStandardInput = true;
                 p.Start();
-                p.StandardInput.WriteLine($"{arg1}{arg2}{arg3}");
+                p.StandardInput.WriteLine(cmdline);
                 if (!showCMD)
                 {
                     p.ErrorDataReceived += P_ErrorDataReceived;

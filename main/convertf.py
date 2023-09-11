@@ -4,15 +4,17 @@ from itertools import chain
 pydir = os.path.abspath(os.path.dirname(__file__))
 def getmulchar(allch):
 	s = str()
-	with open(os.path.join(pydir, 'datas/Multi.txt'), 'r', encoding = 'utf-8') as f:
+	with open(os.path.join(pydir, 'datas/STMulti1.txt'), 'r', encoding = 'utf-8') as f:
 		for line in f.readlines():
-			line = line.strip()
-			if not line or line.startswith('##'):
-				continue
-			if allch:
-				s += line.strip('#').strip()
-			elif not line.startswith('#'):
-				s += line
+			litm=line.split('#')[0].strip()
+			if not litm: continue
+			s += litm
+	if not allch: return s
+	with open(os.path.join(pydir, 'datas/STMulti2.txt'), 'r', encoding = 'utf-8') as f:
+		for line in f.readlines():
+			litm=line.split('#')[0].strip()
+			if not litm: continue
+			s += litm
 	return s
 def addvariants(font):
 	print('Processing font variants...')
@@ -87,16 +89,16 @@ def removeglyhps(font):
 	alcodes = set(chain(
 		range(0x0000, 0x007F),
 		range(0x02B0, 0x0300),
-		range(0x2002, 0x203C),
-		range(0x2E00, 0x2F00),
+		range(0x2000, 0x2050),
+		range(0x2100, 0x2150),
 		range(0x3000, 0x301D),
 		range(0x3100, 0x3130),
-		range(0x3190, 0x31E0),
+		range(0x31A0, 0x31E3),
 		range(0xFE10, 0xFE20),
 		range(0xFE30, 0xFE50),
 		range(0xFF01, 0xFF66)
 	))
-	with open(os.path.join(pydir, 'datas/Hans.txt'), 'r', encoding = 'utf-8') as f:
+	with open(os.path.join(pydir, 'datas/UsedChar.txt'), 'r', encoding = 'utf-8') as f:
 		for line in f.readlines():
 			litm=line.split('#')[0].strip()
 			if litm: alcodes.add(ord(litm))
@@ -231,7 +233,7 @@ def jptotr(font):
 	print('Processing Japanese Kanji...')
 	code_glyph, glyph_codes=getallcodesname(font)
 	tv = dict()
-	with open(os.path.join(pydir, 'datas/uvs-get-jp1-MARK.txt'), 'r', encoding='utf-8') as f:
+	with open(os.path.join(pydir, 'datas/uvs-jp-MARK.txt'), 'r', encoding='utf-8') as f:
 		for line in f.readlines():
 			litm=line.split('#')[0].strip()
 			if litm.endswith('X'):
@@ -269,14 +271,16 @@ def checklk(font):
 	font.addLookup('stmult', 'gsub_multiple', None, (("ccmp", tuple(lantgs)), ), 'stchar')
 	font.addLookup('stliga', 'gsub_ligature', None, (("ccmp", tuple(lantgs)), ))
 	font.addLookupSubtable('stchar', 'stchar1')
+def linesplit(l, ch):
+	litm=l.split('#')[0].strip().split(' ')[0]
+	if ch not in litm: return '', ''
+	lnst=litm.split(ch)
+	return lnst[0].strip(), lnst[1].strip()
 def getdictxt(tabnm):
 	txtdic=dict()
 	with open(os.path.join(pydir, f'datas/{tabnm}.txt'),'r',encoding = 'utf-8') as f:
 		for line in f.readlines():
-			litm=line.split('#')[0].strip().split(' ')[0]
-			if '\t' not in litm: continue
-			lnst=litm.split('\t')
-			s, t = lnst[0].strip(), lnst[1].strip()
+			s, t=linesplit(line, '\t')
 			if s and t and s != t:
 				txtdic[s]=t
 	return txtdic
@@ -287,60 +291,74 @@ def varck(text, vardic):
 def stts(font, wkon, vr=False):
 	tabset=wkon.split('.')
 	tabch=tabset[0]
-	maindic, locvar=dict(), dict()
+	chardic, vardic, wddic=dict(), dict(), dict()
 	mulp, locset, mulchar=str(), str(), str()
 	if tabch=='st':
 		locset, mulp=tabset[1], tabset[2]
 		if mulp!='s':
 			mulchar = getmulchar(mulp == "m")
-		if mulp=='m' and locset=='tw' and '么' not in mulchar:
+		if mulp=='m' and locset in ['tw', 'twp'] and '么' not in mulchar:
 			mulchar+='么'
-	maindic=getdictxt('Chars_'+tabch)
-	if locset in ['tw', 'hk', 'cl']:
-		locvar=getdictxt('Var_'+locset)
-		for ch in locvar.keys():
-			if ch not in maindic.values():
-				maindic[ch]=locvar[ch]
-		for ch in list(maindic.keys()):
-			if maindic[ch] in locvar:
-				maindic[ch]=locvar[maindic[ch]]
-	mapts(font, maindic, mulchar)
+	chardic=getdictxt('Chars_'+tabch)
+	if locset in ['tw', 'hk', 'cl', 'twp']:
+		if locset=='twp':vardic=getdictxt('Var_tw')
+		else: vardic=getdictxt('Var_'+locset)
+		for ch in vardic.keys():
+			if ch not in chardic.values():
+				chardic[ch]=vardic[ch]
+		for ch in list(chardic.keys()):
+			if chardic[ch] in vardic:
+				chardic[ch]=vardic[chardic[ch]]
+	if tabch == 'ts' or mulp == "m":
+		phrases=f'datas/{tabch.upper()}Phrases.txt'
+		with open(os.path.join(pydir, phrases),'r',encoding = 'utf-8') as f:
+			for line in f.readlines():
+				s, t=linesplit(line, '\t')
+				if not(s and t): continue
+				if locset in ['tw', 'hk', 'cl', 'twp']:
+					t=varck(t, vardic)
+				wddic[s]=t
+		if locset=='twp':
+			with open(os.path.join(pydir, 'datas/TWPhrases.txt'),'r',encoding = 'utf-8') as f:
+				for line in f.readlines():
+					s, t=linesplit(line, '\t')
+					if not(s and t): continue
+					if len(s)==1 and len(t)==1:
+						chardic[s]=t
+					else:
+						wddic[s]=t
+	mapts(font, chardic, mulchar)
 	if mulp == "m":
 		removeglyhps(font)
 		if vr: addvariants(font)
 	code_glyph, glyph_codes=getallcodesname(font)
 	if tabch == 'ts' or mulp == "m":
+		print('Check font lookups...')
 		checklk(font)
 		if tabch=='ts':
 			ftdic=getdictxt('Chars_tsm')
 		else:
 			ftdic=dict()
-			for ch in maindic.keys():
+			for ch in chardic.keys():
 				if ch in mulchar:
-					ftdic[ch]=maindic[ch]
-			if locset=='tw':
+					ftdic[ch]=chardic[ch]
+			if locset in ['tw', 'twp']:
 				ftdic['么']='麼'
 				ftdic['幺']='么'
 		for ch in ftdic.keys():
-			gntc = code_glyph[ord(ftdic[ch])]
-			gnsc = code_glyph[ord(ch)]
-			if gntc != gnsc:
-				font[gnsc].addPosSub('stchar1', gntc)
+			cd1, cd2=str(ord(ch)), str(ord(ftdic[ch]))
+			if cd1 in code_glyph and cd2 in code_glyph:
+				gntc = code_glyph[cd2]
+				gnsc = code_glyph[cd1]
+				if gntc != gnsc:
+					font[gnsc].addPosSub('stchar1', gntc)
 		stword = list()
-		phrases=f'datas/{tabch.upper()}Phrases.txt'
-		with open(os.path.join(pydir, phrases),'r',encoding = 'utf-8') as f:
-			ccods=set(code_glyph.keys())
-			for line in f.readlines():
-				litm=line.split('#')[0].strip()
-				litm=litm.split(' ')[0].strip()
-				s, t = litm.split('\t')
-				s, t = s.strip(), t.strip()
-				if not(s and t): continue
-				if locset in ['tw', 'hk', 'cl']:
-					t=varck(t, locvar)
-				codestc = set(ord(c) for c in s+t)
-				if codestc.issubset(ccods):
-					stword.append((s, t))
+		ccods=set(code_glyph.keys())
+		for wd in wddic.keys():
+			s, t=wd, wddic[wd]
+			codestc = set(ord(c) for c in s+t)
+			if codestc.issubset(ccods):
+				stword.append((s, t))
 		if len(stword) > 0:
 			sumf = sum(1 for _ in font.glyphs())
 			if len(stword) + sumf > 65535:
@@ -377,7 +395,11 @@ def setnm(font, ennm, tcnm='', scnm='', versn=''):
 	itml, itm=str(), str()
 	if isit: itml, itm=' Italic', 'It'
 	if not versn:
-		versn='{:.2f}'.format(font.sfntRevision)
+		if font.sfntRevision:
+			versn='{:.2f}'.format(font.sfntRevision)
+		else:
+			print('No sfntRevision.')
+			versn='1.00'
 	else:
 		font.sfntRevision = float(versn)
 	fmlName=ennm
