@@ -228,8 +228,9 @@ def fontaddfont(font, fin2, gb=False):
 	scl = 1.0
 	if font["head"]["unitsPerEm"] != font2["head"]["unitsPerEm"]:
 		scl = font["head"]["unitsPerEm"] / font2["head"]["unitsPerEm"]
+	allcd1=set(font['cmap'].keys())
 	for f2glyph in font2['glyph_order']:
-		if f2glyph not in f2glcode or set(f2glcode[f2glyph]).issubset(set(font['cmap'].keys())):
+		if f2glyph not in f2glcode or set(f2glcode[f2glyph]).issubset(allcd1):
 			continue
 		newnm1 = f2glyph
 		j = 1

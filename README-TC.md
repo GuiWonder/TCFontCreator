@@ -1,9 +1,6 @@
 [简体中文](../../#中文字体简繁处理工具) **繁體中文** 
 # 中文字型簡繁處理工具
 繁體字型製作 簡轉繁字型 同義字(簡體字 繁體字 異體字)補全字型檔 合併簡繁字型 合併字型等。
-## 重要說明
-1. **https://github.com/GuiWonder/TCFontCreator 是本工具作者唯一網站。**
-2. **本工具不存在任何收費、積分、廣告、打賞、捐贈等行為。** 
 ## 功能
 #### 1. 生成簡轉繁字型
 提供繁體、繁體臺灣、繁體香港、繁體舊字形 4 種風格。
@@ -43,3 +40,6 @@
 * [FontForge](https://github.com/fontforge/fontforge)
 * [Open Chinese Convert](https://github.com/BYVoid/OpenCC)
 * [《正確實現簡轉繁字型》](https://ayaka.shn.hk/s2tfont/hant/)、[繁媛明朝](https://github.com/ayaka14732/FanWunMing) 作者 [Ayaka](https://github.com/ayaka14732)
+
+## 其他說明
+https://github.com/GuiWonder/TCFontCreator 是本工具作者唯一網站。

@@ -254,8 +254,8 @@
             // checkBoxYitizi
             // 
             this.checkBoxYitizi.AutoSize = true;
-            this.checkBoxYitizi.Checked = true;
-            this.checkBoxYitizi.CheckState = System.Windows.Forms.CheckState.Checked;
+            // this.checkBoxYitizi.Checked = true;
+            // this.checkBoxYitizi.CheckState = System.Windows.Forms.CheckState.Checked;
             this.checkBoxYitizi.Location = new System.Drawing.Point(253, 124);
             this.checkBoxYitizi.Name = "checkBoxYitizi";
             this.checkBoxYitizi.Size = new System.Drawing.Size(156, 16);
