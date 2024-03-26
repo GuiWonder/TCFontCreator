@@ -1,5 +1,6 @@
 import os, sys, json, subprocess, platform, tempfile, gc
 from itertools import chain
+
 pydir = os.path.abspath(os.path.dirname(__file__))
 otfccdump = os.path.join(pydir, 'otfcc/otfccdump')
 otfccbuild = os.path.join(pydir, 'otfcc/otfccbuild')
@@ -9,20 +10,7 @@ if platform.system() in ('Mac', 'Darwin'):
 if platform.system() == 'Linux':
 	otfccdump += '2'
 	otfccbuild += '2'
-def getmulchar(allch):
-	s = str()
-	with open(os.path.join(pydir, 'datas/STMulti1.txt'), 'r', encoding = 'utf-8') as f:
-		for line in f.readlines():
-			litm=line.split('#')[0].strip()
-			if not litm: continue
-			s += litm
-	if not allch: return s
-	with open(os.path.join(pydir, 'datas/STMulti2.txt'), 'r', encoding = 'utf-8') as f:
-		for line in f.readlines():
-			litm=line.split('#')[0].strip()
-			if not litm: continue
-			s += litm
-	return s
+
 def addvariants(font):
 	print('Processing font variants...')
 	with open(os.path.join(pydir, 'datas/Variants.txt'),'r',encoding = 'utf-8') as f:
@@ -39,6 +27,7 @@ def addvariants(font):
 				for ch1 in vari:
 					if str(ord(ch1)) not in font['cmap']:
 						font['cmap'][str(ord(ch1))] = gtgly
+
 def removeglyhps(font, sp=False):
 	print('Removing glyghs...')
 	usedg=set()
@@ -83,7 +72,7 @@ def removeglyhps(font, sp=False):
 						for item in set(subtable.keys()):
 							if item in usedg:
 								usedg.update(set(subtable[item]))
-				elif lookup['type'] == 'gsub_ligature':
+				elif lookup['type'] == 'gsub_ligature': 
 					for subtable in lookup['subtables']:
 						for item in subtable['substitutions']:
 							if set(item['from']).issubset(usedg):
@@ -116,7 +105,7 @@ def removeglyhps(font, sp=False):
 					for item in set(subtable.keys()):
 						if item in unusegl or len(set(subtable[item]).intersection(unusegl))>0:
 							del subtable[item]
-			elif lookup['type'] == 'gsub_ligature':
+			elif lookup['type'] == 'gsub_ligature': 
 				for subtable in lookup['subtables']:
 					s1=list()
 					for item in subtable['substitutions']:
@@ -150,6 +139,7 @@ def removeglyhps(font, sp=False):
 					if len(gs.intersection(unusegl))<1:
 						nsb.append(subtable)
 				lookup['subtables']=nsb
+
 def addlookupword(font, stword):
 	stword.sort(key=lambda x:len(x[0]), reverse = True)
 	subtablesl = list()
@@ -167,8 +157,8 @@ def addlookupword(font, stword):
 			wdt.append(font['cmap'][str(ord(t1))])
 		newgname = 'ligast' + str(i)
 		font['glyf'][newgname] = {
-									'advanceWidth': 0,
-									'advanceHeight': 1000,
+									'advanceWidth': 0, 
+									'advanceHeight': 1000, 
 									'verticalOrigin': 880
 								 }
 		font['glyph_order'].append(newgname)
@@ -198,7 +188,8 @@ def addlookupword(font, stword):
 											'flags': {},
 											'subtables': subtablesm
 										}
-def fontaddfont(font, fin2, gb=False):
+
+def mgsg1(font, fin2, gb=False):
 	print('Loading font2...')
 	font2 = json.loads(subprocess.check_output((otfccdump, '--no-bom', fin2)).decode("utf-8", "ignore"))
 	if ('CFF_' in font)!=('CFF_' in font2):
@@ -247,8 +238,14 @@ def fontaddfont(font, fin2, gb=False):
 	del f2glcode
 	del font2
 	gc.collect()
+
+def mgft(font, ftfls, gb=False):
+	for ftfl in ftfls:
+		print('Merge font', ftfl)
+		mgsg1(font, ftfl, gb)
 	if len(font['glyf'])>65535: removeglyhps(font)
 	assert len(font['glyf'])<65536, 'The number of glyphs is over 65535.'
+
 def sclglyph(glyph, scl):
 	glyph['advanceWidth'] = round(glyph['advanceWidth'] * scl)
 	if 'advanceHeight' in glyph:
@@ -263,6 +260,7 @@ def sclglyph(glyph, scl):
 		for reference in glyph['references']:
 			reference['x'] = round(scl * reference['x'])
 			reference['y'] = round(scl * reference['y'])
+
 def setnm(font, ennm, tcnm='', scnm='', versn=''):
 	print('Processing font name...')
 	wt=str()
@@ -302,6 +300,7 @@ def setnm(font, ennm, tcnm='', scnm='', versn=''):
 	psName=fmlName.replace(' ', '')+'-'+wt+itm
 	uniqID=versn+';'+psName
 	if wt=='Bold':
+	#if wt in ('Regular', 'Bold') and not (isit and wt=='Regular'):
 		fullName=ftName+' '+wt+itml
 		fullNamesc=ftNamesc+' '+wt+itml
 		fullNametc=ftNametc+' '+wt+itml
@@ -311,40 +310,40 @@ def setnm(font, ennm, tcnm='', scnm='', versn=''):
 		fullNametc=ftNametc+itml
 	newname=list()
 	newname+=[
-		{'languageID': 1033,'nameID': 1,'nameString': ftName},
-		{'languageID': 1033,'nameID': 2,'nameString': subfamily},
-		{'languageID': 1033,'nameID': 3,'nameString': uniqID},
-		{'languageID': 1033,'nameID': 4,'nameString': fullName},
-		{'languageID': 1033,'nameID': 5,'nameString': 'Version '+versn},
-		{'languageID': 1033,'nameID': 6,'nameString': psName},
+		{'languageID': 1033,'nameID': 1,'nameString': ftName}, 
+		{'languageID': 1033,'nameID': 2,'nameString': subfamily}, 
+		{'languageID': 1033,'nameID': 3,'nameString': uniqID}, 
+		{'languageID': 1033,'nameID': 4,'nameString': fullName}, 
+		{'languageID': 1033,'nameID': 5,'nameString': 'Version '+versn}, 
+		{'languageID': 1033,'nameID': 6,'nameString': psName}, 
 		]
 	if wt not in ('Regular', 'Bold'):
 		newname+=[
-			{'languageID': 1033,'nameID': 16,'nameString': fmlName},
+			{'languageID': 1033,'nameID': 16,'nameString': fmlName}, 
 			{'languageID': 1033,'nameID': 17,'nameString': wt+itml}
 			]
 	if tcnm:
 		for lanid in (1028, 3076, 5124):
 			newname+=[
-				{'languageID': lanid,'nameID': 1,'nameString': ftNametc},
-				{'languageID': lanid,'nameID': 2,'nameString': subfamily},
+				{'languageID': lanid,'nameID': 1,'nameString': ftNametc}, 
+				{'languageID': lanid,'nameID': 2,'nameString': subfamily}, 
 				{'languageID': lanid,'nameID': 4,'nameString': fullNametc}
 				]
 			if wt not in ('Regular', 'Bold'):
 				newname+=[
-					{'languageID': lanid,'nameID': 16,'nameString': tcnm},
+					{'languageID': lanid,'nameID': 16,'nameString': tcnm}, 
 					{'languageID': lanid,'nameID': 17,'nameString': wt+itml}
 					]
 	if scnm:
 		for lanid in (2052, 4100):
 			newname+=[
-				{'languageID': lanid,'nameID': 1,'nameString': ftNamesc},
-				{'languageID': lanid,'nameID': 2,'nameString': subfamily},
+				{'languageID': lanid,'nameID': 1,'nameString': ftNamesc}, 
+				{'languageID': lanid,'nameID': 2,'nameString': subfamily}, 
 				{'languageID': lanid,'nameID': 4,'nameString': fullNamesc}
 				]
 			if wt not in ('Regular', 'Bold'):
 				newname+=[
-					{'languageID': lanid,'nameID': 16,'nameString': scnm},
+					{'languageID': lanid,'nameID': 16,'nameString': scnm}, 
 					{'languageID': lanid,'nameID': 17,'nameString': wt+itml}
 					]
 	for nl in newname:
@@ -352,6 +351,7 @@ def setnm(font, ennm, tcnm='', scnm='', versn=''):
 		nl['encodingID']=1
 	font['name']=newname
 	if 'CFF_' in font:
+		#font['CFF_']['notice']=''
 		font['CFF_']['fontName']=psName
 		font['CFF_']['fullName']=fmlName+' '+wt
 		font['CFF_']['familyName']=fmlName
@@ -363,40 +363,20 @@ def setnm(font, ennm, tcnm='', scnm='', versn=''):
 			for gl in font['glyf'].values():
 				if 'CFF_fdSelect' in gl:
 					gl['CFF_fdSelect']=psName+'-'+gl['CFF_fdSelect'].split('-')[-1]
-def jptotr(font):
-	print('Processing Japanese Kanji...')
-	dv = dict()
-	if 'cmap_uvs' not in font:
-		raise RuntimeError('This font is not applicable!')
-	for k in font['cmap_uvs'].keys():
-		c, v = k.split(' ')
-		if c not in dv:
-			dv[c] = dict()
-		dv[c][v] = font['cmap_uvs'][k]
-	tv = dict()
-	with open(os.path.join(pydir, 'datas/uvs-jp-MARK.txt'), 'r', encoding='utf-8') as f:
-		for line in f.readlines():
-			litm=line.split('#')[0].strip()
-			if litm.endswith('X'):
-				a = litm.split(' ')
-				tv[str(ord(a[0]))] = str(int(a[3].strip('X'), 16))
-	for k in dv.keys():
-		if k in tv:
-			if tv[k] in dv[k]:
-				tch = dv[k][tv[k]]
-				font['cmap'][k] = tch
+
 def mapts(font, chardic, ignch):
 	for ch in chardic.keys():
 		if ch in ignch: continue
 		cdto=str(ord(chardic[ch]))
 		if cdto in font['cmap']:
 			font['cmap'][str(ord(ch))] = font['cmap'][cdto]
+
 def checklk(font):
 	if not 'GSUB' in font:
 		font['GSUB'] = {
-			'languages': {},
-			'features': {},
-			'lookups': {},
+			'languages': {}, 
+			'features': {}, 
+			'lookups': {}, 
 			'lookupOrder': []
 		}
 	for scrtg in ['DFLT_DFLT', 'hani_DFLT', 'latn_DFLT']:
@@ -406,11 +386,13 @@ def checklk(font):
 		table['features'].insert(0, 'ccmp_st')
 	font['GSUB']['features']['ccmp_st'] = ['wordsc', 'stchars', 'wordtc']
 	font['GSUB']['lookupOrder']=['wordsc', 'stchars', 'wordtc']+font['GSUB']['lookupOrder']
+
 def linesplit(l, ch):
 	litm=l.split('#')[0].strip().split(' ')[0]
 	if ch not in litm: return '', ''
 	lnst=litm.split(ch)
 	return lnst[0].strip(), lnst[1].strip()
+
 def getdictxt(tabnm):
 	txtdic=dict()
 	with open(os.path.join(pydir, f'datas/{tabnm}.txt'),'r',encoding = 'utf-8') as f:
@@ -419,41 +401,58 @@ def getdictxt(tabnm):
 			if s and t and s != t:
 				txtdic[s]=t
 	return txtdic
+
 def varck(text, vardic):
 	for ch in vardic.keys():
 		text=text.replace(ch, vardic[ch])
 	return text
+
+def getstmul(wkon):
+	str1=str()
+	if wkon[1]!='0' or wkon[2]=='1':return ''
+	stfls=list()
+	stfls.append('STMulti1.txt')
+	if wkon[2]!='0':stfls.append('STMulti2.txt')
+	for stfl in stfls:
+		with open(os.path.join(pydir, 'datas/'+stfl), 'r', encoding = 'utf-8') as f:
+			for line in f.readlines():
+				litm=line.split('#')[0].strip()
+				if litm: str1+=litm
+	if (wkon[2]=='3' or wkon[3]=='1') and '么' not in str1:
+		str1+='么'
+	return str1
+
 def stts(font, wkon, vr=False):
-	tabset=wkon.split('.')
-	tabch=tabset[0]
-	chardic, vardic, wddic=dict(), dict(), dict()
-	mulp, locset, mulchar=str(), str(), str()
+	tabch=['st', 'ts'][int(wkon[1])]
+	locset, mulset=str(), str()
 	if tabch=='st':
-		locset, mulp=tabset[1], tabset[2]
-		if mulp!='s':
-			mulchar = getmulchar(mulp == "m")
-		if mulp=='m' and locset in ['tw', 'twp'] and '么' not in mulchar:
-			mulchar+='么'
+		mulset=wkon[2]
+		if mulset=='3':
+			locset='tw'
+		else:
+			locset=['', 'tw', 'hk', 'cl'][int(wkon[3])]
+	mulchar= getstmul(wkon)
 	chardic=getdictxt('Chars_'+tabch)
-	if locset in ['tw', 'hk', 'cl', 'twp']:
-		if locset=='twp':vardic=getdictxt('Var_tw')
-		else: vardic=getdictxt('Var_'+locset)
+	vardic=dict()
+	if locset:
+		vardic=getdictxt('Var_'+locset)
 		for ch in vardic.keys():
 			if ch not in chardic.values():
 				chardic[ch]=vardic[ch]
 		for ch in list(chardic.keys()):
 			if chardic[ch] in vardic:
 				chardic[ch]=vardic[chardic[ch]]
-	if tabch == 'ts' or mulp == "m":
+	wddic=dict()
+	if tabch == 'ts' or mulset in ['2', '3']:
 		phrases=f'datas/{tabch.upper()}Phrases.txt'
 		with open(os.path.join(pydir, phrases),'r',encoding = 'utf-8') as f:
 			for line in f.readlines():
 				s, t=linesplit(line, '\t')
 				if not(s and t): continue
-				if locset in ['tw', 'hk', 'cl', 'twp']:
+				if locset in ['tw', 'hk', 'cl']:
 					t=varck(t, vardic)
 				wddic[s]=t
-		if locset=='twp':
+		if mulset=='3':
 			with open(os.path.join(pydir, 'datas/TWPhrases.txt'),'r',encoding = 'utf-8') as f:
 				for line in f.readlines():
 					s, t=linesplit(line, '\t')
@@ -462,13 +461,15 @@ def stts(font, wkon, vr=False):
 						chardic[s]=t
 					else:
 						wddic[s]=t
+	
 	mapts(font, chardic, mulchar)
-	if mulp == "m":
+	if mulset in ['2', '3']:
 		removeglyhps(font, True)
 		if vr: addvariants(font)
 	else:
 		removeglyhps(font, False)
-	if tabch == 'ts' or mulp == "m":
+	
+	if tabch == 'ts' or mulset in ['2', '3']:
 		print('Check font lookups...')
 		checklk(font)
 		if tabch=='ts':
@@ -478,7 +479,7 @@ def stts(font, wkon, vr=False):
 			for ch in chardic.keys():
 				if ch in mulchar:
 					ftdic[ch]=chardic[ch]
-			if locset in ['tw', 'twp']:
+			if locset=='tw':
 				ftdic['么']='麼'
 				ftdic['幺']='么'
 		kt=dict()
@@ -499,76 +500,65 @@ def stts(font, wkon, vr=False):
 			raise RuntimeError('Not enough glyph space! You need ' + str(nd) + ' more glyph space!')
 		if len(stword) > 0:
 			addlookupword(font, stword)
+
 def parseArgs(args):
 	nwk=dict()
-	nwk['inFilePath'], nwk['outFilePath'], nwk['outFilePath2'], nwk['enN'], nwk['scN'], nwk['tcN'], nwk['vsN']=(str() for i in range(7))
-	nwk['varit'], nwk['toST'], nwk['toTS'], nwk['jpCL'], nwk['rmUN']=(False for i in range(5))
+	cfars=['-i', '-o', '-wk', '-n', '-n1', '-n2', '-n3']
+	for arg in cfars:
+		nwk[arg]=str()
+	nwk['-i2']=list()
+	nwk['-v']=False
+	nwk['-ih']=False
 	argn = len(args)
 	i = 0
-	while i < argn:
-		arg  = args[i]
-		i += 1
-		if arg == "-o":
-			nwk['outFilePath'] = args[i]
+	while i<argn:
+		arg=args[i]
+		i+=1
+		if arg in cfars:
+			nwk[arg]=args[i]
+			i+=1
+		elif arg=='-i2':
+			nwk['-i2'].append(args[i])
 			i += 1
-		elif arg == "-i":
-			nwk['inFilePath'] = args[i]
-			i += 1
-		elif arg == "-i2":
-			nwk['inFilePath2'] = args[i]
-			i += 1
-		elif arg == "-wk":
-			nwk['work'] = args[i]
-			i += 1
-		elif arg == "-v":
-			nwk['varit'] = True
-		elif arg == "-n":
-			nwk['enN'] = args[i]
-			i += 1
-		elif arg == "-nsc":
-			nwk['scN'] = args[i]
-			i += 1
-		elif arg == "-ntc":
-			nwk['tcN'] = args[i]
-			i += 1
-		elif arg == "-vn":
-			nwk['vsN'] = args[i]
-			i += 1
+		elif arg in ['-v', '-ih']:
+			nwk[arg]=True
 		else:
 			raise RuntimeError("Unknown option '%s'." % (arg))
-	if not nwk['inFilePath']:
+	if not nwk['-i']:
 		raise RuntimeError("You must specify one input font.")
-	if not nwk['outFilePath']:
+	if not nwk['-o']:
 		raise RuntimeError("You must specify one output font.")
-	if nwk['work'] in ("sat", "faf") and not nwk['inFilePath2']:
+	if nwk['-wk'] in ('10', '12') and len(nwk['-i2'])<1:
 		raise RuntimeError("You must specify one input font2.")
-	if not nwk['enN'] and (nwk['tcN'] or nwk['scN'] or nwk['vsN']):
-		raise RuntimeError("You must specify English name first.")
 	return nwk
+
 def run(args):
 	print('Loading font...')
 	wkfl=parseArgs(args)
-	infont=json.loads(subprocess.check_output((otfccdump, '--no-bom', wkfl['inFilePath'])).decode("utf-8", "ignore"))
-	if wkfl['work'] in ("sat", "faf"):
-		fontaddfont(infont, wkfl['inFilePath2'], wkfl['work']=="sat")
-	if wkfl['work']=='jt':
-		jptotr(infont)
-	if wkfl['work']=="var" or wkfl['varit']:
+	infont=json.loads(subprocess.check_output((otfccdump, '--no-bom', wkfl['-i'])).decode("utf-8", "ignore"))
+	if wkfl['-wk'] in ("10", "12"):
+		mgft(infont, wkfl['-i2'], wkfl['-wk']=="12")
+	if wkfl['-wk']=="11" or wkfl['-v']:
 		addvariants(infont)
-	if wkfl['work'].split('.')[0] in ("st", "ts"):
-		stts(infont, wkfl['work'], wkfl['varit'])
-	if wkfl['enN']:
-		setnm(infont, wkfl['enN'], wkfl['tcN'], wkfl['scN'], wkfl['vsN'])
+	if wkfl['-wk'].startswith('0'):
+		stts(infont, wkfl['-wk'], wkfl['-v'])
+	if wkfl['-n']:
+		setnm(infont, wkfl['-n'], wkfl['-n1'], wkfl['-n2'], wkfl['-n3'])
 	print('Saving font...')
 	tmpfile = tempfile.mktemp('.json')
 	with open(tmpfile, 'w', encoding='utf-8') as f:
 		f.write(json.dumps(infont))
 	del infont
 	gc.collect()
-	subprocess.run((otfccbuild, '--keep-modified-time', '--keep-average-char-width', '-O3', '-q', '-o', wkfl['outFilePath'], tmpfile))
+	if wkfl['-ih']:
+		subprocess.run((otfccbuild, '--ignore-hints', '--keep-average-char-width', '-O1', '-q', '-o', wkfl['-o'], tmpfile))
+	else:
+		subprocess.run((otfccbuild, '--keep-average-char-width', '-O1', '-q', '-o', wkfl['-o'], tmpfile))
 	os.remove(tmpfile)
 	print('Finished!')
+
 def main():
 	run(sys.argv[1:])
+
 if __name__ == "__main__":
 	main()

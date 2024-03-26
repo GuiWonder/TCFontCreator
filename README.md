@@ -1,45 +1,44 @@
 **简体中文** [繁體中文](README-TC.md#中文字型簡繁處理工具) 
+
 # 中文字体简繁处理工具
-繁体字体制作 简转繁字体 同义字(简体字 繁体字 异体字)补全字库 合并简繁字体 合并字体等。
+简繁转换字体制作 同义字(简体字 繁体字 异体字)补全字库 合并简繁字体 合并字体。
+
 ## 功能
+### 生成简繁转换字体
 #### 1. 生成简转繁字体
-提供繁体、繁体台湾、繁体香港、繁体旧字形 4 种风格。
-对于简繁一对多情况可选择不处理、使用单一常用字、使用词汇正确处理简繁一对多。
-#### 2. 同义字补全字库
-使用字库中存在的异体字、繁体字、简体字补全缺失的字符，在不增加字形的情况下可显示更多的字符。
-#### 3. 合并简繁字体
-简体与简体编码的简入繁出字体合并。针对于简体编码的简繁字体的合并。
-#### 4. 合并两个字体
-可以是简体 GB2312 并入繁体 BIG5 的字体，也可以是字符较少的字体并入字符较全的字体，用以补充字库中字形的数目。
-#### 5. 日本字体新字形转为旧字形
-针对部分日本字体的处理。
-#### 6. 生成繁转简字体
+可选择繁体预设、繁体台湾、繁体香港、繁体旧字形 4 种繁体异体字。
+对于简繁一对多情况可选择不处理一简多繁、使用单一常用字、使用词汇动态匹配一简多繁、使用台湾词汇动态匹配（包含台湾常用语以及化学元素名称的转换）。
+#### 2. 生成繁转简字体
 繁入简出的字体。
-#### 7. 生成简转繁字体台湾词彙
-包含台湾常用语以及化学元素名称的转换。
+### 补充字库
+#### 1. 从其他字体补入
+可一次补入多个字体。
+#### 2. 使用字体本身简繁异体补充
+使用字库中存在的异体字、繁体字、简体字补全缺失的字符，在不增加字形的情况下可显示更多的字符。
+#### 3. 合并简体与简入繁出字体
+针对于简体编码的简繁字体的合并。
+### 操作界面
+#### 1. Windows 系统
+Windows 系统下可直接使用图形界面。
+#### 2. Linux 或 Mac 系统
+需在终端中运行，在终端中运行 `python run_in_command_line_sc.py` 或 `python3 run_in_command_line_sc.py`。运行前需要确保 otfcc 相关文件已添加允许执行权限，`chmod +x ./otfcc/*`。
 
 ## 常见问题
-#### 1. 如何在 Linux 或 Mac 上使用？
-答：在终端中运行 `python run_in_command_line.py` 或 `python3 run_in_command_line.py`。*注:运行前需要先将 otfcc 相关文件添加允许执行权限`chmod +x ./otfcc/*`。*
-#### 2. 某些字体处理失败怎么办？
+#### 1. 某些字体处理失败怎么办？
 答：工具提供 oftcc 和 FontForge 两种字体处理方法，如果处理失败，可尝试换另一种。
-#### 3. 已经安装过 FontForge 、Python 可否不使用程序附带的 FontForge 、Python？
-答：可以。需要在 **appdata** 文件中指定 fontforge.exe、python.exe 所在的全路径。
-#### 4. 如何显示转换过程中的命令窗口？
+#### 2. 图形界面下如何显示转换过程中的命令窗口？
 答：主程序添加 `cmd` 参数可显示转换过程中的命令窗口。
-#### 5. 对于转换规则不满意，可否自行修改？
+#### 3. 对于转换规则不满意，可否自行修改？
 答：可以。本工具转换规则来自[OpenCC](https://github.com/BYVoid/OpenCC)，所使用的转换字典为纯文本格式，位于 **datas** 目录中。
-#### 6. 简转繁字体局限性
-答：使用词汇的简转繁字体的局限性可参阅[《正确实现简转繁字体》](https://ayaka.shn.hk/s2tfont/)，其他方法的简转繁字体见本账户其他字体项目。
+#### 4. 简转繁字体注意问题及局限性
+答：使用词汇的简转繁字体需要使用 OpenType 功能。局限性可参阅[《正确实现简转繁字体》](https://ayaka.shn.hk/s2tfont/)，其他方法的简转繁字体见本账户其他字体项目。
 
 ## 下载地址
-可从 [Releases](https://github.com/GuiWonder/TCFontCreator/releases) 页面下载最新版。
+可从 [Releases](https://github.com/GuiWonder/TCFontCreator/releases) 页面下载。
 
 ## 特别感谢
 * [otfcc](https://github.com/caryll/otfcc)
 * [FontForge](https://github.com/fontforge/fontforge)
 * [Open Chinese Convert](https://github.com/BYVoid/OpenCC)
-* [《正确实现简转繁字体》](https://ayaka.shn.hk/s2tfont/)、[繁媛明朝](https://github.com/ayaka14732/FanWunMing) 作者 [Ayaka](https://github.com/ayaka14732)
+* [《正确实现简转繁字体》](https://ayaka.shn.hk/s2tfont/)、[繁媛明朝](https://github.com/ayaka14732/FanWunMing)
 
-## 其他说明
-本工具网址 https://github.com/GuiWonder/TCFontCreator
