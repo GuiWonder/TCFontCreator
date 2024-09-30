@@ -31,7 +31,7 @@ Windows 系統下可直接使用圖形介面。
 #### 3. 對於轉換規則不滿意，可否自行修改？
 答：可以。本工具轉換規則來自[OpenCC](https://github.com/BYVoid/OpenCC)，所使用的轉換字典為純文字格式，位於 **datas** 目錄中。
 #### 4. 簡轉繁字型注意問題及侷限性
-答：使用詞彙的簡轉繁字型需要使用 OpenType 功能。侷限性可參閱[《正確實現簡轉繁字型》](https://ayaka.shn.hk/s2tfont/hant/)，其他方法的簡轉繁字型見本賬戶其他字型專案。
+答：使用詞彙的簡轉繁字型需要使用 OpenType 功能。侷限性可參閱[《正確實現簡轉繁字型》](https://ayaka.shn.hk/s2tfont/hant/)，其他方法的簡轉繁字型見本帳戶其他字型專案。
 
 ## 下載地址
 可從 [Releases](https://github.com/GuiWonder/TCFontCreator/releases) 頁面下載。
