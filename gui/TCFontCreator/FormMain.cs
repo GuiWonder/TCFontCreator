@@ -9,7 +9,7 @@ namespace TCFontCreator
     {
         public FormMain(string[] args)
         {
-            showCMD = args.Length > 0 && args[0].ToLower() == "cmd";
+            FInfo = args.Length > 0 && args[0].ToLower() == "info";
             InitializeComponent();
         }
 
@@ -18,17 +18,19 @@ namespace TCFontCreator
         public System.Collections.Generic.List<string> listMsg;
         public System.Collections.Generic.List<string> addfonts;
         string cfgFile;
-        private readonly bool showCMD;
+        private readonly bool FInfo;
         private string exeffpy;
         private string exepy;
         private string path;
         private string fileout;
         private bool useotfcc;
         private System.Threading.Thread thRun;
-        private string err;
+        private string errinfo;
         private string outinfo;
+        private string dbginfo;
         private string cmdline;
-
+        private string argexe;
+        
         private void FormMain_Load(object sender, EventArgs e)
         {
             CheckForIllegalCrossThreadCalls = false;
@@ -88,7 +90,10 @@ namespace TCFontCreator
 
             string pyfile = useotfcc ? path + "converto.py" : path + "convertf.py";
             pyfile = pyfile.Replace('\\', '/');
-            string args = $"\"{pyfile}\" -i \"{filein}\" -o \"{fileout}\"";
+            filein = filein.Replace('\\', '/');
+            filein2 = filein2.Replace('\\', '/');
+            fileout = fileout.Replace('\\', '/');
+            cmdline = $"\"{pyfile}\" -i \"{filein}\" -o \"{fileout}\"";
 
             string runmd = "";
 
@@ -100,10 +105,10 @@ namespace TCFontCreator
             {
                 runmd = tabControl1.SelectedIndex.ToString() + comboBoxMg.SelectedIndex.ToString();
             }
-            args += " -wk " + runmd;
+            cmdline += " -wk " + runmd;
             if (tabControl1.SelectedIndex == 0 && checkBoxYitizi.Checked)
             {
-                args += " -v";
+                cmdline += " -v";
             }
 
             if (checkBoxInfo.Checked)
@@ -115,18 +120,18 @@ namespace TCFontCreator
                 }
                 else
                 {
-                    args += $" -n \"{textBoxName.Text}\"";
+                    cmdline += $" -n \"{textBoxName.Text}\"";
                     if (!string.IsNullOrWhiteSpace(textBoxTCName.Text))
                     {
-                        args += $" -n1 \"{textBoxTCName.Text}\"";
+                        cmdline += $" -n1 \"{textBoxTCName.Text}\"";
                     }
                     if (!string.IsNullOrWhiteSpace(textBoxSCName.Text))
                     {
-                        args += $" -n2 \"{textBoxSCName.Text}\"";
+                        cmdline += $" -n2 \"{textBoxSCName.Text}\"";
                     }
                     if (!string.IsNullOrWhiteSpace(textBoxVersi.Text))
                     {
-                        args += $" -n3 \"{textBoxVersi.Text}\"";
+                        cmdline += $" -n3 \"{textBoxVersi.Text}\"";
                     }
                 }
             }
@@ -136,40 +141,39 @@ namespace TCFontCreator
                 {
                     foreach (var item in addfonts)
                     {
-                        args += " -i2 \"" + item + "\"";
+                        cmdline += " -i2 \"" + item + "\"";
                     }
                 }
                 else if (comboBoxMg.SelectedIndex == 2)
                 {
-                    args += " -i2 \"" + filein2 + "\"";
+                    cmdline += " -i2 \"" + filein2 + "\"";
                 }
                 if (checkBoxIH.Checked)
                 {
-                    args += " -ih";
+                    cmdline += " -ih";
                 }
             }
 
             if (!useotfcc)
             {
+                argexe = exeffpy;
                 exeffpy = exeffpy.Replace("\\", "/");
                 string bin = exeffpy.Substring(0, exeffpy.LastIndexOf('/'));
                 string ffpath = bin.Substring(0, bin.LastIndexOf('/'));
-                cmdline = $"set \"PYTHONHOME={ffpath}\"&\"{exeffpy}\" {args}";
+                Environment.SetEnvironmentVariable("PYTHONHOME", ffpath);
             }
             else
             {
-                cmdline = $"\"{exepy}\" {args}";
+                argexe = exepy;
             }
-            if (!showCMD)
-            {
-                cmdline += "&exit";
-            }
+            
 
             tabControl1.Enabled = false;
             Cursor = Cursors.WaitCursor;
             Text = listMsg[4];
-            err = "";
-            outinfo = "";
+            errinfo = "";
+            outinfo = $"{argexe} {cmdline}";
+            dbginfo = $"{argexe} {cmdline}\r\n";
             thRun = new System.Threading.Thread(ThRun)
             {
                 IsBackground = true
@@ -181,22 +185,17 @@ namespace TCFontCreator
         {
             using (System.Diagnostics.Process p = new System.Diagnostics.Process())
             {
-                p.StartInfo.FileName = "cmd";
-                fileout = fileout.Replace('\\', '/');
+                p.StartInfo.FileName = argexe;
+                p.StartInfo.Arguments = cmdline;
                 p.StartInfo.UseShellExecute = false;
-                p.StartInfo.CreateNoWindow = !showCMD;
-                p.StartInfo.RedirectStandardError = !showCMD;
-                p.StartInfo.RedirectStandardOutput = !showCMD;
-                p.StartInfo.RedirectStandardInput = true;
+                p.StartInfo.CreateNoWindow = true;
+                p.StartInfo.RedirectStandardError = true;
+                p.StartInfo.RedirectStandardOutput = true;
                 p.Start();
-                p.StandardInput.WriteLine(cmdline);
-                if (!showCMD)
-                {
-                    p.ErrorDataReceived += P_ErrorDataReceived;
-                    p.OutputDataReceived += P_OutputDataReceived;
-                    p.BeginErrorReadLine();
-                    p.BeginOutputReadLine();
-                }
+                p.ErrorDataReceived += P_ErrorDataReceived;
+                p.OutputDataReceived += P_OutputDataReceived;
+                p.BeginErrorReadLine();
+                p.BeginOutputReadLine();
                 p.WaitForExit();
                 p.Close();
             }
@@ -205,22 +204,26 @@ namespace TCFontCreator
                 tabControl1.Enabled = true;
                 Cursor = Cursors.Default;
                 Text = " 已完成";
+                if (FInfo)
+                {
+                    MessageBox.Show(this, dbginfo, "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
                 if (System.IO.File.Exists(fileout))
                 {
                     if (outinfo.EndsWith("Finished!"))
                     {
-                        if (string.IsNullOrWhiteSpace(err))
+                        if (string.IsNullOrWhiteSpace(errinfo))
                         {
                             MessageBox.Show(this, "成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         }
                         else
                         {
-                            MessageBox.Show(this, listMsg[5] + "\r\n" + err, "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            MessageBox.Show(this, listMsg[5] + "\r\n" + errinfo, "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
                     }
-                    else if (!string.IsNullOrWhiteSpace(err))
+                    else if (!string.IsNullOrWhiteSpace(errinfo))
                     {
-                        MessageBox.Show(this, listMsg[6] + "\r\n" + err, "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show(this, listMsg[6] + "\r\n" + errinfo, "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                     else
                     {
@@ -229,7 +232,7 @@ namespace TCFontCreator
                 }
                 else
                 {
-                    MessageBox.Show(this, listMsg[6] + "\r\n" + err, "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(this, listMsg[6] + "\r\n" + errinfo, "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }));
         }
@@ -263,17 +266,25 @@ namespace TCFontCreator
 
         private void P_OutputDataReceived(object sender, System.Diagnostics.DataReceivedEventArgs e)
         {
+            if (FInfo)
+            {
+                dbginfo += e.Data + "\r\n";
+            }
             if (!string.IsNullOrWhiteSpace(e.Data))
             {
-                outinfo = e.Data;
+                outinfo += "\r\n" + e.Data;
             }
         }
 
         private void P_ErrorDataReceived(object sender, System.Diagnostics.DataReceivedEventArgs e)
         {
+            if (FInfo)
+            {
+                dbginfo += e.Data + "\r\n";
+            }
             if (!string.IsNullOrWhiteSpace(e.Data) && (e.Data.Contains("Error") || e.Data.Contains("ERROR") || e.Data.Contains("[Errno")) && !e.Data.Contains("raise"))
             {
-                err += e.Data + "\r\n";
+                errinfo += e.Data + "\r\n";
             }
         }
 
