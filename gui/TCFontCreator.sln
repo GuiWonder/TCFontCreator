@@ -1,9 +1,9 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.1.32210.238
+VisualStudioVersion = 17.12.35521.163
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TCFontCreator", "TCFontCreator\TCFontCreator.csproj", "{C5898FA2-B98C-4793-B88C-845CEA77A241}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TCFontCreator", "TCFontCreator\TCFontCreator.csproj", "{B3DA25C2-C1F8-4E5F-8271-03839571EBB7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,19 +13,19 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C5898FA2-B98C-4793-B88C-845CEA77A241}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C5898FA2-B98C-4793-B88C-845CEA77A241}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C5898FA2-B98C-4793-B88C-845CEA77A241}.Debug|x64.ActiveCfg = Debug|x64
-		{C5898FA2-B98C-4793-B88C-845CEA77A241}.Debug|x64.Build.0 = Debug|x64
-		{C5898FA2-B98C-4793-B88C-845CEA77A241}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C5898FA2-B98C-4793-B88C-845CEA77A241}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C5898FA2-B98C-4793-B88C-845CEA77A241}.Release|x64.ActiveCfg = Release|x64
-		{C5898FA2-B98C-4793-B88C-845CEA77A241}.Release|x64.Build.0 = Release|x64
+		{B3DA25C2-C1F8-4E5F-8271-03839571EBB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3DA25C2-C1F8-4E5F-8271-03839571EBB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3DA25C2-C1F8-4E5F-8271-03839571EBB7}.Debug|x64.ActiveCfg = Debug|x64
+		{B3DA25C2-C1F8-4E5F-8271-03839571EBB7}.Debug|x64.Build.0 = Debug|x64
+		{B3DA25C2-C1F8-4E5F-8271-03839571EBB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3DA25C2-C1F8-4E5F-8271-03839571EBB7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3DA25C2-C1F8-4E5F-8271-03839571EBB7}.Release|x64.ActiveCfg = Release|x64
+		{B3DA25C2-C1F8-4E5F-8271-03839571EBB7}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {91581ED9-724B-4019-9494-B2E5EAA5A91C}
+		SolutionGuid = {5DAB76C8-D5E6-4BA6-B309-F8431731519A}
 	EndGlobalSection
 EndGlobal

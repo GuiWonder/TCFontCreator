@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Langue name="简体中文">
+	<Item from="中文字體簡繁處理工具" to="中文字体简繁处理工具"/>
+	<Item from="生成簡繁字體" to="生成简繁字体"/>
+	<Item from="處理方式" to="处理方式"/>
+	<Item from="生成簡轉繁字體" to="生成简转繁字体"/>
+	<Item from="生成繁轉簡字體" to="生成繁转简字体"/>
+	<Item from="開始" to="开始"/>
+	<Item from="要處理的字體" to="要处理的字体"/>
+	<Item from="選擇" to="选择"/>
+	<Item from="保存爲" to="保存为"/>
+	<Item from="處理工具" to="处理工具"/>
+	<Item from="使用簡繁異體補充字庫" to="使用简繁异体补充字库"/>
+	<Item from="一簡多繁處理方式" to="一简多繁处理方式"/>
+	<Item from="不處理一簡多繁" to="不处理一简多繁"/>
+	<Item from="使用單一常用字" to="使用单一常用字"/>
+	<Item from="使用詞彙動態匹配" to="使用词汇动态匹配"/>
+	<Item from="使用臺灣詞彙動態匹配" to="使用台湾词汇动态匹配"/>
+	<Item from="繁體異體字選擇" to="繁体异体字选择"/>
+	<Item from="預設" to="预设"/>
+	<Item from="臺灣" to="台湾"/>
+	<Item from="香港" to="香港"/>
+	<Item from="舊字形" to="旧字形"/>
+	<Item from="修改字體名稱" to="修改字体名称"/>
+	<Item from="* 字體名稱(英)" to="* 字体名称(英)"/>
+	<Item from="補充字庫" to="补充字库"/>
+	<Item from="從其他字體補入" to="从其他字体补入"/>
+	<Item from="使用字體本身簡繁異體補充" to="使用字体本身简繁异体补充"/>
+	<Item from="合併簡體與簡入繁出字體" to="合并简体与简入繁出字体"/>
+	<Item from="補入的字體" to="补入的字体"/>
+	<Item from="點擊添加字體" to="点击添加字体"/>
+	<Item from="簡入繁出字體" to="简入繁出字体"/>
+	<Item from="設定" to="设定"/>
+	<Item from="界面語言" to="界面语言"/>
+	<Item from="路徑" to="路径"/>
+	<Item from="關於" to="关于"/>
+	<Item from="官方網站" to="官方网站"/>
+	<Item from="字體列表" to="字体列表"/>
+	<Item from="個字體，點擊修改" to="个字体，点击修改"/>
+	<Item from="文件無效，請重新選擇。" to="文件无效，请重新选择。"/>
+	<Item from="請在設定中重新填寫程序路徑。" to="请在设定中重新填写程序路径。"/>
+	<Item from="「字體名稱(英)」不能爲空。" to="“字体名称(英)”不能为空。"/>
+	<Item from="正在處理，請稍後..." to="正在处理，请稍后..."/>
+	<Item from="出現錯誤！" to="出现错误！"/>
+	<Item from="失敗！" to="失败！"/>
+	<Item from="程序執行完畢。" to="程序执行完毕。"/>
+	<Item from="字體文件" to="字体文件"/>
+	<Item from="所有文件" to="所有文件"/>
+	<Item from="請添加補入的字體。" to="请添加补入的字体。"/>
+</Langue>
+

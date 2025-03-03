@@ -5,7 +5,7 @@ from itertools import chain
 pydir = os.path.abspath(os.path.dirname(__file__))
 
 def addvariants(font):
-	print('Processing font variants...')
+	print('Processing variant characters...')
 	code_glyph, glyph_codes=getallcodesname(font)
 	with open(os.path.join(pydir, 'datas/Variants.txt'), 'r', encoding = 'utf-8') as f:
 		for line in f.readlines():
@@ -76,7 +76,7 @@ def adduni(font, code_glyph, glyph_codes, gly, uni):
 		font[gly].altuni = tuple(lu)
 
 def removeglyhps(font):
-	print('Removing glyghs...')
+	print('Cleaning up glyphs...')
 	code_glyph, glyph_codes=getallcodesname(font)
 	alcodes = set(chain(
 		range(0x0000, 0x007F),
@@ -162,7 +162,6 @@ def getallcodesname(thfont):
 	return c_g, g_c
 
 def mgsg1(font, fin2, gb=False):
-	print('Loading font2...')
 	code_glyph, glyph_codes=getallcodesname(font)
 	font2 = fontforge.open(fin2)
 	if font2.is_cid:
@@ -170,27 +169,10 @@ def mgsg1(font, fin2, gb=False):
 		font2.cidFlatten()
 	font2.reencode("unicodefull")
 	font2.em = font.em
-	print('Getting glyph2 codes')
 	code_glyph2, glyph_codes2=getallcodesname(font2)
 	if gb:
-		print('Adding font2 codes...')
-		with open(os.path.join(pydir, 'datas/Variants.txt'),'r',encoding = 'utf-8') as f:
-			for line in f.readlines():
-				litm=line.split('#')[0].strip()
-				if '\t' not in litm: continue
-				vari = litm.split('\t')
-				codein = 0
-				for ch1 in vari:
-					if ord(ch1) in code_glyph2.keys():
-						codein = ord(ch1)
-						break
-				if codein != 0:
-					for ch1 in vari:
-						if ord(ch1) not in code_glyph2.keys():
-							gname=code_glyph2[codein]
-							glyph_codes2[gname].append(ord(ch1))
-							code_glyph2[ord(ch1)] = gname
-		print('Adding glyphs...')
+		addvariants(font2)
+		print('Merging glyphs...')
 		print('This will take some time...')
 		allcodes = set(code_glyph.keys())
 		for n2 in glyph_codes2.keys():
@@ -207,7 +189,7 @@ def mgsg1(font, fin2, gb=False):
 					font[gcs[0]].altuni = gcs[1:]
 				allcodes.update(sdcs)
 	else:
-		print('Adding glyphs...')
+		print('Merging glyphs...')
 		code_codes2 = {}
 		for n2 in glyph_codes2.keys():
 			lc = [ac1 for ac1 in glyph_codes2[n2] if ac1 not in code_glyph]
@@ -217,7 +199,6 @@ def mgsg1(font, fin2, gb=False):
 		font2.copy()
 		font.selection.select(*code_codes2.keys())
 		font.paste()
-		print('Adding extra codings...')
 		for cd1 in code_codes2.keys():
 			if len(code_codes2[cd1]) > 0:
 				font[cd1].altuni = code_codes2[cd1]
@@ -333,7 +314,7 @@ def stts(font, wkon, vr=False):
 	code_glyph, glyph_codes=getallcodesname(font)
 
 	if tabch == 'ts' or mulset in ['2', '3']:
-		print('Check font lookups...')
+		print('Checking lookup tables...')
 		checklk(font)
 		if tabch=='ts':
 			ftdic=getdictxt('Chars_tsm')
@@ -503,7 +484,7 @@ def parseArgs(args):
 
 def run(args):
 	wkfl=parseArgs(args)
-	print('Loading font...')
+	print(f'Loading font', wkfl['-i'])
 	infont=fontforge.open(wkfl['-i'])
 	if infont.is_cid:
 		print('Warning: this is a CID font, we need to FLATTEN it!')
@@ -517,7 +498,7 @@ def run(args):
 		stts(infont, wkfl['-wk'], wkfl['-v'])
 	if wkfl['-n']:
 		setnm(infont, wkfl['-n'], wkfl['-n1'], wkfl['-n2'], wkfl['-n3'])
-	print('Saving font...')
+	print('Saving font', wkfl['-o'])
 	if wkfl['-ih']:
 		gflags=('opentype', 'omit-instructions',)
 		infont.generate(wkfl['-o'], flags=gflags)

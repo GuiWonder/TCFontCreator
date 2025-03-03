@@ -12,7 +12,7 @@ if platform.system() == 'Linux':
 	otfccbuild += '2'
 
 def addvariants(font):
-	print('Processing font variants...')
+	print('Processing variant characters...')
 	with open(os.path.join(pydir, 'datas/Variants.txt'),'r',encoding = 'utf-8') as f:
 		for line in f.readlines():
 			litm=line.split('#')[0].strip()
@@ -29,7 +29,7 @@ def addvariants(font):
 						font['cmap'][str(ord(ch1))] = gtgly
 
 def removeglyhps(font, sp=False):
-	print('Removing glyghs...')
+	print('Cleaning up glyphs...')
 	usedg=set()
 	if sp:
 		s = set(chain(
@@ -190,31 +190,14 @@ def addlookupword(font, stword):
 										}
 
 def mgsg1(font, fin2, gb=False):
-	print('Loading font2...')
 	font2 = json.loads(subprocess.check_output((otfccdump, '--no-bom', fin2)).decode("utf-8", "ignore"))
 	if ('CFF_' in font)!=('CFF_' in font2):
 		raise RuntimeError('Unable to merge fonts in different formats!')
-	if gb:
-		print('Adding font2 codes...')
-		with open(os.path.join(pydir, 'datas/Variants.txt'),'r',encoding = 'utf-8') as f:
-			for line in f.readlines():
-				litm=line.split('#')[0].strip()
-				if '\t' not in litm: continue
-				vari = litm.strip().split('\t')
-				gtgly=str()
-				for ch1 in vari:
-					if str(ord(ch1)) in font2['cmap']:
-						gtgly=font2['cmap'][str(ord(ch1))]
-						break
-				if gtgly:
-					for ch1 in vari:
-						if str(ord(ch1)) not in font2['cmap']:
-							font2['cmap'][str(ord(ch1))] = gtgly
-	print('Adding glyphs...')
+	if gb: addvariants(font2)
+	print('Merging glyphs...')
 	f2glcode=dict()
 	for codpt, glname in font2['cmap'].items():
-		if glname not in f2glcode:
-			f2glcode[glname]=list()
+		f2glcode.setdefault(glname, list())
 		f2glcode[glname].append(codpt)
 	scl = 1.0
 	if font["head"]["unitsPerEm"] != font2["head"]["unitsPerEm"]:
@@ -243,8 +226,10 @@ def mgft(font, ftfls, gb=False):
 	for ftfl in ftfls:
 		print('Merge font', ftfl)
 		mgsg1(font, ftfl, gb)
-	if len(font['glyf'])>65535: removeglyhps(font)
-	assert len(font['glyf'])<65536, 'The number of glyphs is over 65535.'
+	if len(font['glyf'])>65535:
+		print('Too many glyphs, try cleaning them up.')
+		removeglyhps(font)
+	assert len(font['glyf'])<65536, 'The number of glyphs exceeds 65535, and cannot continue.'
 
 def sclglyph(glyph, scl):
 	glyph['advanceWidth'] = round(glyph['advanceWidth'] * scl)
@@ -470,7 +455,7 @@ def stts(font, wkon, vr=False):
 		removeglyhps(font, False)
 	
 	if tabch == 'ts' or mulset in ['2', '3']:
-		print('Check font lookups...')
+		print('Checking lookup tables...')
 		checklk(font)
 		if tabch=='ts':
 			ftdic=getdictxt('Chars_tsm')
@@ -533,8 +518,8 @@ def parseArgs(args):
 	return nwk
 
 def run(args):
-	print('Loading font...')
 	wkfl=parseArgs(args)
+	print(f'Loading font', wkfl['-i'])
 	infont=json.loads(subprocess.check_output((otfccdump, '--no-bom', wkfl['-i'])).decode("utf-8", "ignore"))
 	if wkfl['-wk'] in ("10", "12"):
 		mgft(infont, wkfl['-i2'], wkfl['-wk']=="12")
@@ -544,7 +529,7 @@ def run(args):
 		stts(infont, wkfl['-wk'], wkfl['-v'])
 	if wkfl['-n']:
 		setnm(infont, wkfl['-n'], wkfl['-n1'], wkfl['-n2'], wkfl['-n3'])
-	print('Saving font...')
+	print('Saving font', wkfl['-o'])
 	tmpfile = tempfile.mktemp('.json')
 	with open(tmpfile, 'w', encoding='utf-8') as f:
 		f.write(json.dumps(infont))

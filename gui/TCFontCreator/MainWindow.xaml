@@ -1,0 +1,425 @@
+﻿<Window x:Class="TCFontCreator.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TCFontCreator"
+        mc:Ignorable="d"
+        Title="中文字體簡繁處理工具" Height="500" Width="620" Background="{DynamicResource WinColor}" WindowStartupLocation="CenterScreen" MouseLeftButtonDown="Window_MouseLeftButtonDown" ResizeMode="CanMinimize">
+    <Window.Resources>
+        <SolidColorBrush x:Key="WinColor" Color="#FF505F6D"/>
+        <SolidColorBrush x:Key="BackColor" Color="#FFF1F1F1"/>
+        <SolidColorBrush x:Key="ForColor" Color="Black"/>
+        <Style TargetType="{x:Type TextBlock}">
+            <Setter Property="Foreground" Value="{DynamicResource ForColor}" />
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+        <Style TargetType="CheckBox">
+            <EventSetter Event="Checked" Handler="DisableElement"/>
+            <EventSetter Event="Unchecked" Handler="DisableElement"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="{DynamicResource ForColor}" />
+        </Style>
+        <Style TargetType="RadioButton">
+            <EventSetter Event="Checked" Handler="DisableElement"/>
+            <EventSetter Event="Unchecked" Handler="DisableElement"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="{DynamicResource ForColor}"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <EventSetter Event="PreviewDragOver" Handler="TextBox_PreviewDragOver"/>
+            <EventSetter Event="Drop" Handler="TextBox_Drop"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Background" Value="{x:Null}"/>
+            <Setter Property="Foreground" Value="{DynamicResource ForColor}"/>
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <EventSetter Event="SelectionChanged" Handler="DisableElement"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Background" Value="{DynamicResource BackColor}"/>
+            <Setter Property="Foreground" Value="{DynamicResource ForColor}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource ForColor}" />
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border CornerRadius="8" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#FF86C1FB"/>
+                    <Setter Property="BorderBrush" Value="DarkBlue"/>
+                    <Setter Property="Foreground" Value="Black"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#FF6699CC"/>
+                    <Setter Property="BorderBrush" Value="#FF0000B9"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#FFCCC8C8"/>
+                    <Setter Property="BorderBrush" Value="#FF7899AA"/>
+                    <Setter Property="Foreground" Value="#FF908F8F"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="ButtonStyle" TargetType="{x:Type Button}">
+            <EventSetter Event="Click" Handler="P_Click"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="{DynamicResource ForColor}" />
+            <Setter Property="Background" Value="{DynamicResource WinColor}"/>
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="Gray" />
+            <Setter Property="Margin" Value="5" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Width" Value="100"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border CornerRadius="15" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="BorderBrush" Value="{DynamicResource ForColor}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource ForColor}" />
+                    <Setter Property="Background" Value="{DynamicResource BackColor}" />
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#FFCCC8C8"/>
+                    <Setter Property="BorderBrush" Value="#FFA0A0A0"/>
+                    <Setter Property="Foreground" Value="#FF908F8F"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="ButtonHL" TargetType="{x:Type Button}">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource ForColor}"/>
+            <Setter Property="Foreground" Value="{DynamicResource ForColor}" />
+            <Setter Property="Background" Value="{DynamicResource BackColor}" />
+
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Margin" Value="5" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Width" Value="100"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border CornerRadius="15" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#FFCCC8C8"/>
+                    <Setter Property="BorderBrush" Value="#FFA0A0A0"/>
+                    <Setter Property="Foreground" Value="#FF908F8F"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="Border" TargetType="Border">
+            <Setter Property="Margin" Value="10,5,10,5"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="#FFF1F1F1"/>
+            <Setter Property="CornerRadius" Value="15"/>
+            <Setter Property="BorderBrush">
+                <Setter.Value>
+                    <SolidColorBrush Color="{StaticResource {x:Static SystemColors.ControlLightColorKey}}"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    <Grid Margin="0,5,0,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="1*"/>
+        </Grid.RowDefinitions>
+        <StackPanel x:Name="spHead" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Button x:Name="p1" Content="生成簡繁字體" Grid.Column="1"/>
+            <Button x:Name="p2" Content="補充字庫" Grid.Column="2"/>
+            <Button x:Name="p3" Content="設定" Grid.Column="3"/>
+        </StackPanel>
+        <TabControl x:Name="tab1" Grid.Row="1" Background="{x:Null}" BorderBrush="{x:Null}">
+            <TabItem>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+                    <Border Style="{DynamicResource Border}" Grid.ColumnSpan="2">
+                        <Grid Margin="5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="50"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="30"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock x:Name="tbMd" Text="處理方式"/>
+                            <TextBlock x:Name="tbIn" Text="要處理的字體" Grid.Row="1"/>
+                            <TextBlock x:Name="tbOut" Text="保存爲" Grid.Row="2"/>
+                            <TextBlock x:Name="tbTool" Text="處理工具" Grid.Row="3"/>
+                            <CheckBox x:Name="ckV" Content="使用簡繁異體補充字庫" IsChecked="True" Grid.Row="4" Margin="5,0,5,0" Grid.ColumnSpan="3" HorizontalAlignment="Left"/>
+                            <CheckBox x:Name="ckHint" Content="移除 hinting" Grid.Row="4" Margin="5,0,5,0" Grid.ColumnSpan="3" HorizontalAlignment="Left"/>
+                            <StackPanel x:Name="spMD1" Orientation="Horizontal" Grid.Column="1" Grid.ColumnSpan="2">
+                                <RadioButton x:Name="rdST" Content="生成簡轉繁字體" IsChecked="True"/>
+                                <RadioButton x:Name="rdTS" Content="生成繁轉簡字體" Margin="20,0,0,0"/>
+                            </StackPanel>
+                            <StackPanel x:Name="spMD2" Orientation="Horizontal" Grid.Column="1" Grid.ColumnSpan="2">
+                                <RadioButton x:Name="rdMg" Content="從其他字體補入" IsChecked="True"/>
+                                <RadioButton x:Name="rdVar" Content="使用字體本身簡繁異體補充" Margin="20,0,0,0"/>
+                                <RadioButton x:Name="rdFan" Content="合併簡體與簡入繁出字體" Margin="20,0,0,0"/>
+                            </StackPanel>
+                            <TextBox x:Name="txIn1" Grid.Row="1" Grid.Column="1" AllowDrop="True"/>
+                            <TextBox x:Name="txOut1" Grid.Row="2" Grid.Column="1" AllowDrop="True"/>
+                            <Button x:Name="btIn" Grid.Row="1" Grid.Column="2" Content="選擇" Click="Choose_Click"/>
+                            <Button x:Name="btOut" Grid.Row="2" Grid.Column="2" Content="選擇" Click="Choose_Click"/>
+                            <StackPanel Orientation="Horizontal" Grid.Row="3" Grid.Column="1">
+                                <RadioButton x:Name="rdOtfcc" Content="otfcc" IsChecked="True"/>
+                                <RadioButton Content="Fontforge" Margin="20,0,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                    <Border x:Name="bdST" Grid.Row="1" Style="{DynamicResource Border}" Margin="10,5,5,5">
+                        <Grid x:Name="gdST" Margin="5">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="30"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="tbSTMul" Text="一簡多繁處理方式" Grid.ColumnSpan="2" HorizontalAlignment="Center"/>
+                            <TextBlock x:Name="tbSTVar" Text="繁體異體字選擇" Grid.Row="3" Grid.ColumnSpan="2" HorizontalAlignment="Center"/>
+                            <RadioButton x:Name="rdSTN" Content="不處理一簡多繁" Grid.Column="0" Grid.Row="1"/>
+                            <RadioButton x:Name="rdSTOne" Content="使用單一常用字" Grid.Column="1" Grid.Row="1" IsChecked="True"/>
+                            <RadioButton x:Name="rdSTM" Content="使用詞彙動態匹配" Grid.Column="0" Grid.Row="2"/>
+                            <RadioButton x:Name="rdSTMT" Content="使用臺灣詞彙動態匹配" Grid.Column="1" Grid.Row="2" Grid.ColumnSpan="2"/>
+                            <Grid x:Name="gdSTVar" Grid.Row="4" Grid.ColumnSpan="2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <RadioButton x:Name="rdVDef" Content="預設" IsChecked="True"/>
+                                <RadioButton x:Name="rdVTW" Content="臺灣" Grid.Column="1"/>
+                                <RadioButton x:Name="rdVHK" Content="香港" Grid.Column="2"/>
+                                <RadioButton x:Name="rdVOld" Content="舊字形"  Grid.Column="3"/>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                    <Border x:Name="bdMerge" Grid.Row="1" Style="{DynamicResource Border}" Margin="10,5,5,5">
+                        <Grid Margin="5">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="30"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="50"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="tbIn2" Text="補入的字體" Grid.ColumnSpan="2" HorizontalAlignment="Center"/>
+                            <TextBlock x:Name="tbInT2" Text="簡入繁出字體" Grid.Row="2" Grid.ColumnSpan="2" HorizontalAlignment="Center"/>
+                            <Button x:Name="btFs" Grid.Row="1" Content="點擊添加字體" Click="BtFs_Click" Grid.ColumnSpan="2"/>
+                            <TextBox x:Name="txInT2" Grid.Row="3" AllowDrop="True"/>
+                            <Button x:Name="btInT2" Grid.Row="3" Grid.Column="1" Content="選擇" Click="Choose_Click"/>
+                        </Grid>
+                    </Border>
+
+                    <Border x:Name="bdName" Grid.Column="1" Grid.Row="1" Style="{DynamicResource Border}" Margin="5,5,10,5">
+                        <Grid Margin="5">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="1*"/>
+                            </Grid.RowDefinitions>
+                            <CheckBox x:Name="ckName" Content="修改字體名稱" HorizontalAlignment="Center" Grid.ColumnSpan="2"/>
+                            <Grid x:Name="gdName" Grid.Row="1">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="30"/>
+                                    <RowDefinition Height="30"/>
+                                    <RowDefinition Height="30"/>
+                                    <RowDefinition Height="30"/>
+                                    <RowDefinition Height="1*"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock x:Name="tbNE" Text="* 字體名稱(英)" Grid.Row="0"/>
+                                <TextBlock Text="中文名稱(繁)" Grid.Row="1"/>
+                                <TextBlock Text="中文名称(简)" Grid.Row="2"/>
+                                <TextBlock Text="版本" Grid.Row="3"/>
+                                <TextBox x:Name="txNE" Grid.Column="1" Grid.Row="0" Text="My New Font" AllowDrop="False"/>
+                                <TextBox x:Name="txNT" Grid.Column="1" Grid.Row="1" Text="我的新字體" AllowDrop="False"/>
+                                <TextBox x:Name="txNS" Grid.Column="1" Grid.Row="2" Text="我的新字体" AllowDrop="False"/>
+                                <TextBox x:Name="txNV" Grid.Column="1" Grid.Row="3" Text="1.00" AllowDrop="False"/>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                    <Button x:Name="btStart" Content="開始" Grid.Row="3" Grid.ColumnSpan="2" VerticalAlignment="Center" HorizontalAlignment="Center" Height="30" Width="80" FontSize="15" Margin="10" Click="BtStart_Click"/>
+                </Grid>
+            </TabItem>
+            <TabItem>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="20"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Style="{DynamicResource Border}">
+                        <Grid Margin="5,15,5,15">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="40"/>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="30"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="50"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="tbSet" Text="設定" Grid.ColumnSpan="2" HorizontalAlignment="Left" Margin="50,0,0,0" FontSize="14" FontWeight="Bold"/>
+                            <TextBlock x:Name="tbLan" Text="界面語言" Grid.Row="1"/>
+                            <TextBlock x:Name="tbPY" Text="Python 路徑" Grid.Row="2"/>
+                            <TextBlock x:Name="tbFF" Text="Fontforge 路徑" Grid.Row="3"/>
+                            <ComboBox x:Name="cbLan" Grid.Row="1" Grid.Column="1" SelectedIndex="0">
+                            </ComboBox>
+                            <TextBox x:Name="txPY" Grid.Row="2" Grid.Column="1" Text="python\python.exe" AllowDrop="True" LostFocus="TextboxPY_LostFocus"/>
+                            <TextBox x:Name="txFF" Grid.Row="3" Grid.Column="1" Text="FontForgeBuilds\bin\ffpython.exe" AllowDrop="True" LostFocus="TextboxPY_LostFocus"/>
+                            <Button x:Name="btPY" Grid.Row="2" Grid.Column="2" Content="選擇" Click="Choose_Click"/>
+                            <Button x:Name="btFF" Grid.Row="3" Grid.Column="2" Content="選擇" Click="Choose_Click"/>
+                        </Grid>
+                    </Border>
+                    <Border Grid.Row="2" Style="{DynamicResource Border}">
+                        <Grid Margin="5,10,5,10">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="40"/>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="30"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="50"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="tbAbout" Text="關於中文字體簡繁處理工具" Grid.ColumnSpan="2" HorizontalAlignment="Left" Margin="50,0,0,0" FontSize="14" FontWeight="Bold"/>
+                            <TextBlock x:Name="tbHome" Text="網站" Grid.Row="1"/>
+                            <TextBlock x:Name="tbVer" Text="版本" Grid.Row="2"/>
+                            <TextBlock x:Name="tbUrl" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Left">
+                                <Hyperlink NavigateUri="https://github.com/GuiWonder/TCFontCreator" Hyperlink.RequestNavigate="Hyperlink_RequestNavigate">
+                                    https://github.com/GuiWonder/TCFontCreator
+                                </Hyperlink>
+                            </TextBlock>
+                            <TextBox x:Name="tbVerN" Grid.Row="2" Grid.Column="1" Text="0.0.0" HorizontalAlignment="Left" BorderThickness="0" IsReadOnly="True"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+            <TabItem>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="17"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+                    <Border Grid.Row="0" Style="{DynamicResource Border}">
+                        <Grid Margin="5">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="25"/>
+                                <RowDefinition Height="1*"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="100"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="tbFsIn" Text="字體列表" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10,0,0,0"/>
+                            <ListBox x:Name="listBox" Height="275" Grid.Row="1" Margin="5,0,10,3" LayoutUpdated="ListBox_LayoutUpdated" AllowDrop="True" Drop="ListBox_Drop"/>
+                            <Grid Grid.Column="1" Grid.Row="1">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="30"/>
+                                    <RowDefinition Height="30"/>
+                                    <RowDefinition Height="30"/>
+                                    <RowDefinition Height="30"/>
+                                    <RowDefinition Height="30"/>
+                                    <RowDefinition Height="30"/>
+                                    <RowDefinition Height="1*"/>
+                                </Grid.RowDefinitions>
+                                <Button x:Name="btAdd" Content="添加" Click="ButtonList_Click"/>
+                                <Button x:Name="btInst" Content="插入" Grid.Row="1" Click="ButtonList_Click"/>
+                                <Button x:Name="btUp" Content="上移" Grid.Row="2" Click="ButtonList_Click"/>
+                                <Button x:Name="btDn" Content="下移" Grid.Row="3" Click="ButtonList_Click"/>
+                                <Button x:Name="btRmv" Content="移除" Grid.Row="4" Click="ButtonList_Click"/>
+                                <Button x:Name="btClr" Content="清空" Grid.Row="5" Click="ButtonList_Click"/>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                    <Button x:Name="btBack" Content="&lt;&lt;返回" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Height="30" Width="80" FontSize="15" Margin="10" Click="BtBack_Click"/>
+                </Grid>
+            </TabItem>
+            <TabItem>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="16"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+                    <Border Grid.Row="0" Style="{DynamicResource Border}">
+                        <Grid Margin="5">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="42"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="1*"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock x:Name="tbInfo" Text="Info" HorizontalAlignment="Center" FontSize="14" TextWrapping="Wrap"/>
+                            <ListBox x:Name="listBox2" Height="262" Grid.Row="1" Margin="10,0,10,0"/>
+                        </Grid>
+                    </Border>
+                    <Button x:Name="btBack2" Content="&lt;&lt;返回" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Height="30" Width="80" FontSize="15" Margin="10" Click="BtBack_Click"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>
